@@ -38,8 +38,8 @@ publishing {
     repositories {
         maven {
             credentials {
-                username = "$mavenUsr"
-                password = "$mavenPwd"
+                username = project.findProperty("mavenUsr") ?: ""
+                password = project.findProperty("mavenPwd") ?: ""
             }
 
             url = "https://artifacts.marginalia.nu/snapshots"
