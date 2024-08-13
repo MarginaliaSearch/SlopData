@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+}
+
+group = 'nu.marginalia'
+version = '0.0.0-SNAPSHOT'
+
+repositories {
+    mavenLocal()
+    maven { url "https://artifactory.cronapp.io/public-release/" }
+    maven { url "https://repo1.maven.org/maven2/" }
+    maven { url "https://www2.ph.ed.ac.uk/maven2/" }
+    maven { url "https://jitpack.io/" }
+    exclusiveContent {
+        forRepository {
+            maven {
+                url = uri("https://jitpack.io")
+            }
+        }
+        filter {
+            // Only use JitPack for the `gson-record-type-adapter-factory` library
+            includeModule("com.github.Marcono1234", "gson-record-type-adapter-factory")
+        }
+    }
+    mavenCentral()
+}
+
+
+dependencies {
+    implementation('org.apache.commons:commons-compress:1.26.0')
+    implementation('com.github.luben:zstd-jni:1.5.2-2')
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
