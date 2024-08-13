@@ -5,6 +5,7 @@ import nu.marginalia.slop.column.ColumnWriter;
 import nu.marginalia.slop.column.ObjectColumnReader;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 /** SlopTable is a utility class for managing a group of columns that are
@@ -36,6 +37,14 @@ public class SlopTable implements AutoCloseable {
         this.page = page;
     }
 
+    /** Returns the number of pages for the given reference column */
+    public static int getNumPages(Path baseDirectory, ColumnDesc<?,?> referenceColumn) {
+        for (int version = 0; ; version++) {
+            if (!referenceColumn.forPage(version).exists(baseDirectory)) {
+                return version;
+            }
+        }
+    }
 
     /** Register a column reader with this table.  This is called from ColumnDesc. */
     void register(ColumnReader reader) {
