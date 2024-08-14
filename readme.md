@@ -73,22 +73,20 @@ Beyond that, you're largely on your own to ensure that the data is consistent.
 
 ## Why though?
 
-Slop is fast.  
-
-Slop generally outperforms most other storage formats available in Java
+Slop is fast:  Slop generally outperforms most other storage formats available in Java
 (e.g. anything over jdbc, parquet, protobuf) when it comes to sequential 
-reads and writes, at the cost of really only supporting this use case.
-A big part of why this is the case is because it offers a lot of flexibility 
-in how the data is stored.
+reads and writes, at the cost of really only supporting this one use case.
 
-Slop is compact.
+It's often at least one to two orders of magnitude faster than some of Java's
+built-in tools for reading and writing data (e.g. Data...Stream, Object...Stream, 
+with a buffered underlying stream).  
 
-Depending on compression and encoding choices, the format will be smaller
+You should however always benchmark your own use case to be sure.
+
+Slop is compact:  Depending on compression and encoding choices, the format will be smaller
 than a parquet file containing the equivalent information.
 
-Slop is simple.
-
-There isn't much magic going on under the hood in Slop.  
+Slop is simple:  There isn't much magic going on under the hood in Slop.  
 
 It's designed with the philosophy that a competent programmer
 should be able to reverse engineer the format of the data by 
@@ -193,3 +191,6 @@ TBW
 
 If you feel like Slop could benefit from SQL support, you're almost certainly looking at the wrong tool for the job.
 
+## Why is it called "Slop"?
+
+It's a funny word.  
