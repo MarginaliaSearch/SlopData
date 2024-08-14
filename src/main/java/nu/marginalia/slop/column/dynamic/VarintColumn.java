@@ -1,6 +1,10 @@
 package nu.marginalia.slop.column.dynamic;
 
-import nu.marginalia.slop.desc.ColumnDesc;
+import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.ColumnReader;
+import nu.marginalia.slop.column.ColumnWriter;
+import nu.marginalia.slop.desc.ColumnFunction;
+import nu.marginalia.slop.desc.StorageType;
 import nu.marginalia.slop.storage.Storage;
 import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
@@ -9,80 +13,41 @@ import java.io.IOException;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 
-public class VarintColumn {
+public class VarintColumn extends AbstractColumn<VarintColumn.Reader, VarintColumn.Writer> {
 
-    public static VarintColumnReader open(Path path, ColumnDesc columnDesc) throws IOException {
-        if (columnDesc.byteOrder() == ByteOrder.BIG_ENDIAN) {
-            return new ReaderBE(columnDesc, Storage.reader(path, columnDesc, true));
-        }
-        else {
-            return new ReaderLE(columnDesc, Storage.reader(path, columnDesc, true));
-        }
-
+    public VarintColumn(String name) {
+        this(name, ColumnFunction.DATA, StorageType.PLAIN);
     }
 
-    public static VarintColumnWriter create(Path path, ColumnDesc columnDesc) throws IOException {
-        if (columnDesc.byteOrder() == ByteOrder.BIG_ENDIAN) {
-            return new WriterBE(columnDesc, Storage.writer(path, columnDesc));
-        } else {
-            return new WriterLE(columnDesc, Storage.writer(path, columnDesc));
-        }
+    public VarintColumn(String name, StorageType storageType) {
+        this(name, ColumnFunction.DATA, storageType);
     }
 
+    public VarintColumn(String name, ColumnFunction function, StorageType storageType) {
+        super(name, "varint", ByteOrder.nativeOrder(), function, storageType);
+    }
 
-    private static class WriterBE implements VarintColumnWriter {
-        private final ColumnDesc<?, ?> columnDesc;
+    @Override
+    public Reader openUnregistered(Path path, int page) throws IOException {
+        return new VarintColumn.Reader(Storage.reader(path, this, page, true));
+    }
+
+    @Override
+    public Writer createUnregistered(Path path, int page) throws IOException {
+        return new VarintColumn.Writer(Storage.writer(path, this, page));
+    }
+
+    public class Writer implements ColumnWriter {
         private final StorageWriter writer;
         private long position = 0;
 
-        public WriterBE(ColumnDesc<?,?> columnDesc, StorageWriter writer) throws IOException {
-            this.columnDesc = columnDesc;
+        Writer(StorageWriter writer) {
             this.writer = writer;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
-        }
-
-        public void put(long value) throws IOException {
-            position++;
-
-            while ((value & ~0x7F) != 0) {
-                writer.putByte((byte) (0x80 | (value & 0x7F)));
-                value >>>= 7;
-            }
-            writer.putByte((byte) (value & 0x7F));
-        }
-
-        public void put(long[] values) throws IOException {
-            for (long val : values) {
-                put(val);
-            }
-        }
-
-        public long position() {
-            return position;
-        }
-
-        public void close() throws IOException {
-            writer.close();
-        }
-    }
-
-    private static class WriterLE implements VarintColumnWriter {
-        private final ColumnDesc<?, ?> columnDesc;
-        private final StorageWriter writer;
-        private long position = 0;
-
-        public WriterLE(ColumnDesc<?,?> columnDesc, StorageWriter writer) throws IOException {
-            this.columnDesc = columnDesc;
-            this.writer = writer;
-        }
-
-        @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return VarintColumn.this;
         }
 
         public void put(long value) throws IOException {
@@ -171,91 +136,18 @@ public class VarintColumn {
         }
     }
 
-    private static class ReaderBE implements VarintColumnReader {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Reader implements ColumnReader {
         private final StorageReader reader;
 
         private long position = 0;
 
-        public ReaderBE(ColumnDesc<?,?> columnDesc, StorageReader reader) throws IOException {
-            this.columnDesc = columnDesc;
+        Reader(StorageReader reader) {
             this.reader = reader;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
-        }
-
-        public int get() throws IOException {
-            int value = 0;
-            int shift = 0;
-            byte b;
-
-            do {
-                b = reader.getByte();
-                value |= (b & 0x7F) << shift;
-                shift += 7;
-            } while ((b & 0x80) != 0);
-
-            position++;
-
-            return value;
-        }
-
-        public long getLong() throws IOException {
-            long value = 0;
-            int shift = 0;
-            byte b;
-
-            do {
-                b = reader.getByte();
-                value |= (long) (b & 0x7F) << shift;
-                shift += 7;
-            } while ((b & 0x80) != 0);
-
-            position++;
-
-            return value;
-        }
-
-        @Override
-        public long position() {
-            return position;
-        }
-
-        @Override
-        public void skip(long positions) throws IOException {
-            for (long i = 0; i < positions; i++) {
-                get();
-            }
-        }
-
-        @Override
-        public boolean hasRemaining() throws IOException {
-            return reader.hasRemaining();
-        }
-
-        @Override
-        public void close() throws IOException {
-            reader.close();
-        }
-    }
-
-    private static class ReaderLE implements VarintColumnReader {
-        private final ColumnDesc<?, ?> columnDesc;
-        private final StorageReader reader;
-
-        private long position = 0;
-
-        public ReaderLE(ColumnDesc<?,?> columnDesc, StorageReader reader) throws IOException {
-            this.columnDesc = columnDesc;
-            this.reader = reader;
-        }
-
-        @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return VarintColumn.this;
         }
 
         public int get() throws IOException {

@@ -218,7 +218,7 @@ public class CompressingStorageReader implements StorageReader {
     }
 
     @Override
-    public long position() throws IOException {
+    public long position() {
         return position - buffer.remaining();
     }
 

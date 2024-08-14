@@ -1,51 +1,64 @@
 package nu.marginalia.slop.column.array;
 
+import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.AbstractObjectColumn;
 import nu.marginalia.slop.column.ObjectColumnReader;
 import nu.marginalia.slop.column.ObjectColumnWriter;
 import nu.marginalia.slop.column.dynamic.VarintColumn;
-import nu.marginalia.slop.column.dynamic.VarintColumnReader;
-import nu.marginalia.slop.column.dynamic.VarintColumnWriter;
-import nu.marginalia.slop.desc.ColumnDesc;
 import nu.marginalia.slop.desc.ColumnFunction;
-import nu.marginalia.slop.ColumnTypes;
 import nu.marginalia.slop.desc.StorageType;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ObjectArrayColumn {
-    public static <T> ObjectArrayColumnReader<T> open(Path baseDir,
-                                               ColumnDesc<ObjectArrayColumnReader<T>, ObjectArrayColumnWriter<T>> selfType,
-                                               ObjectColumnReader<T> baseReader) throws IOException {
-        return new Reader<>(selfType, baseReader,
-                VarintColumn.open(baseDir, selfType.createSupplementaryColumn(ColumnFunction.GROUP_LENGTH, ColumnTypes.VARINT_LE, StorageType.PLAIN)));
+public class ObjectArrayColumn<T> extends AbstractObjectColumn<List<T>, ObjectArrayColumn<T>.Reader, ObjectArrayColumn<T>.Writer> {
+    private final VarintColumn groupLengthColumn;
+    private final AbstractObjectColumn<T, ?, ?> wrappingColumn;
+
+    public ObjectArrayColumn(String name, AbstractObjectColumn<T, ?, ?> wrappingColumn) {
+        super(name,
+                wrappingColumn.typeMnemonic + "[]",
+                ByteOrder.nativeOrder(),
+                ColumnFunction.DATA,
+                wrappingColumn.storageType);
+
+        this.groupLengthColumn = new VarintColumn(name, ColumnFunction.GROUP_LENGTH, StorageType.PLAIN);
+        this.wrappingColumn = wrappingColumn;
     }
 
-    public static <T> ObjectArrayColumnWriter<T> create(Path baseDir,
-                                                 ColumnDesc<ObjectArrayColumnReader<T>, ObjectArrayColumnWriter<T>> selfType,
-                                                 ObjectColumnWriter<T> baseWriter) throws IOException {
-        return new Writer<T>(selfType,
-                baseWriter,
-                VarintColumn.create(baseDir, selfType.createSupplementaryColumn(ColumnFunction.GROUP_LENGTH, ColumnTypes.VARINT_LE, StorageType.PLAIN)));
+
+    @Override
+    public ObjectArrayColumn<T>.Reader openUnregistered(Path path, int page) throws IOException {
+        return new ObjectArrayColumn<T>.Reader(
+                wrappingColumn.openUnregistered(path, page),
+                groupLengthColumn.openUnregistered(path, page)
+                );
+    }
+
+    @Override
+    public ObjectArrayColumn<T>.Writer createUnregistered(Path path, int page) throws IOException {
+        return new ObjectArrayColumn<T>.Writer(
+                wrappingColumn.createUnregistered(path, page),
+                groupLengthColumn.createUnregistered(path, page)
+                );
     }
 
 
-    private static class Writer<T> implements ObjectArrayColumnWriter<T> {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Writer implements ObjectColumnWriter<List<T>> {
         private final ObjectColumnWriter<T> dataWriter;
-        private final VarintColumnWriter groupsWriter;
+        private final VarintColumn.Writer groupsWriter;
 
-        public Writer(ColumnDesc<?, ?> columnDesc, ObjectColumnWriter<T> dataWriter, VarintColumnWriter groupsWriter) throws IOException {
-            this.columnDesc = columnDesc;
+        Writer(ObjectColumnWriter<T> dataWriter, VarintColumn.Writer groupsWriter) {
             this.dataWriter = dataWriter;
             this.groupsWriter = groupsWriter;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return ObjectArrayColumn.this;
         }
 
         public void put(List<T> value) throws IOException {
@@ -65,20 +78,18 @@ public class ObjectArrayColumn {
         }
     }
 
-    private static class Reader<T> implements ObjectArrayColumnReader<T> {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Reader implements ObjectColumnReader<List<T>> {
         private final ObjectColumnReader<T> dataReader;
-        private final VarintColumnReader groupsReader;
+        private final VarintColumn.Reader groupsReader;
 
-        public Reader(ColumnDesc<?, ?> columnDesc, ObjectColumnReader<T> dataReader, VarintColumnReader groupsReader) throws IOException {
-            this.columnDesc = columnDesc;
+        Reader(ObjectColumnReader<T> dataReader, VarintColumn.Reader groupsReader) {
             this.dataReader = dataReader;
             this.groupsReader = groupsReader;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return ObjectArrayColumn.this;
         }
 
         public List<T> get() throws IOException {

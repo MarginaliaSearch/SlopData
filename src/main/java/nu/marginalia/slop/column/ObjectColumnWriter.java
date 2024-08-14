@@ -1,11 +1,9 @@
 package nu.marginalia.slop.column;
 
-import nu.marginalia.slop.desc.ColumnDesc;
-
 import java.io.IOException;
 
 public interface ObjectColumnWriter<T> extends ColumnWriter {
-    ColumnDesc<?, ?> columnDesc();
+    AbstractColumn<?, ?> columnDesc();
 
     void put(T value) throws IOException;
 

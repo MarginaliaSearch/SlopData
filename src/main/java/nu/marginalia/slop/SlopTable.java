@@ -1,10 +1,11 @@
-package nu.marginalia.slop.desc;
+package nu.marginalia.slop;
 
+import nu.marginalia.slop.column.AbstractColumn;
 import nu.marginalia.slop.column.ColumnReader;
 import nu.marginalia.slop.column.ColumnWriter;
-import nu.marginalia.slop.column.ObjectColumnReader;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -12,11 +13,6 @@ import java.util.*;
  * read and written together.  It is used to ensure that the reader and writer
  * positions are maintained correctly between the columns, and to ensure that
  * the columns are closed correctly.
- * <p></p>
- * To deal with the fact that some columns may not be expected to have the same
- * number of rows, SlopTable supports the concept of column groups.  Each column
- * group is a separate SlopTable instance, and the columns in the group are
- * managed together.
  * <p></p>
  * It is often a good idea to let the reader or writer class for a particular
  * table inherit from SlopTable, so that the table is automatically closed when
@@ -38,43 +34,43 @@ public class SlopTable implements AutoCloseable {
     }
 
     /** Returns the number of pages for the given reference column */
-    public static int getNumPages(Path baseDirectory, ColumnDesc<?,?> referenceColumn) {
-        for (int version = 0; ; version++) {
-            if (!referenceColumn.forPage(version).exists(baseDirectory)) {
-                return version;
+    public static int getNumPages(Path baseDirectory, AbstractColumn<?,?> referenceColumn) {
+        for (int page = 0; ; page++) {
+            if (!Files.exists(baseDirectory.resolve(referenceColumn.fileName(page)))) {
+                return page;
             }
         }
     }
 
     /** Register a column reader with this table.  This is called from ColumnDesc. */
-    void register(ColumnReader reader) {
+    public <T extends ColumnReader> T register(T reader) {
         if (!readerList.add(reader))
             System.err.println("Double registration of " + reader);
+        return reader;
     }
 
     /** Register a column reader with this table.  This is called from ColumnDesc. */
-    void register(ColumnWriter writer) {
+    public <T extends ColumnWriter> T register(T writer) {
         if (!writerList.add(writer))
             System.err.println("Double registration of " + writer);
+        return writer;
     }
 
-    protected <T> boolean find(ObjectColumnReader<T> column, T value) throws IOException {
-        boolean ret = column.search(value);
-
-        long desiredPos = column.position() - 1;
-
-        for (var otherReader : readerList) {
-            if (otherReader.position() < desiredPos) {
-                otherReader.skip(desiredPos - otherReader.position());
-            }
+    public long position() throws IOException {
+        for (var reader : readerList) {
+            return reader.position();
         }
 
-        return ret;
+        for (var writer : writerList) {
+            return writer.position();
+        }
+
+        return 0;
     }
 
     public void close() throws IOException {
 
-        Map<Long, List<ColumnDesc>> positions = new HashMap<>();
+        Map<Long, List<AbstractColumn<?,?>>> positions = new HashMap<>();
 
         for (ColumnReader reader : readerList) {
             positions.computeIfAbsent(reader.position(), k -> new ArrayList<>()).add(reader.columnDesc());

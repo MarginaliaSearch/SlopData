@@ -1,9 +1,8 @@
 package nu.marginalia.slop.column;
 
+import nu.marginalia.slop.SlopTable;
 import nu.marginalia.slop.column.primitive.IntColumn;
-import nu.marginalia.slop.desc.ColumnDesc;
 import nu.marginalia.slop.desc.ColumnFunction;
-import nu.marginalia.slop.ColumnTypes;
 import nu.marginalia.slop.desc.StorageType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,18 +55,15 @@ class IntColumnTest {
     @Test
     void test() throws IOException {
 
-        var name = new ColumnDesc("test",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.INT_LE,
-                StorageType.PLAIN
-        );
+        var columnDesc = new IntColumn("test", StorageType.PLAIN);
 
-        try (var column = IntColumn.create(tempDir, name)) {
+        try (var table = new SlopTable()) {
+            var column = columnDesc.create(table, tempDir);
             column.put(42);
             column.put(43);
         }
-        try (var column = IntColumn.open(tempDir, name)) {
+        try (var table = new SlopTable()) {
+            var column = columnDesc.open(table, tempDir);
             assertEquals(42, column.get());
             assertEquals(43, column.get());
         }
@@ -76,19 +72,18 @@ class IntColumnTest {
 
     @Test
     void testLarge() throws IOException {
-        var name = new ColumnDesc("test",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.INT_LE,
-                StorageType.PLAIN
-        );
 
-        try (var column = IntColumn.create(tempDir, name)) {
+        var columnDesc = new IntColumn("test", StorageType.PLAIN);
+
+
+        try (var table = new SlopTable()) {
+            var column = columnDesc.create(table, tempDir);
             for (int i = 0; i < 64; i++) {
                 column.put(i);
             }
         }
-        try (var column = IntColumn.open(tempDir, name)) {
+        try (var table = new SlopTable()) {
+            var column = columnDesc.open(table, tempDir);
             int i = 0;
             while (column.hasRemaining()) {
                 assertEquals(i++, column.get());
@@ -99,23 +94,22 @@ class IntColumnTest {
 
     @Test
     void testLargeBulk() throws IOException {
-        var name = new ColumnDesc("test",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.INT_LE,
-                StorageType.PLAIN
-        );
+
+        var columnDesc = new IntColumn("test", StorageType.PLAIN);
+
 
 
         int[] values = new int[24];
         for (int i = 0; i < values.length; i++) {
             values[i] = i;
         }
-        try (var column = IntColumn.create(tempDir, name)) {
+        try (var table = new SlopTable()) {
+            var column = columnDesc.create(table, tempDir);
             column.put(values);
             column.put(values);
         }
-        try (var column = IntColumn.open(tempDir, name)) {
+        try (var table = new SlopTable()) {
+            var column = columnDesc.open(table, tempDir);
             for (int i = 0; i < 2; i++) {
                 for (int j = 0; j < values.length; j++) {
                     assertEquals(j, column.get());
@@ -127,23 +121,22 @@ class IntColumnTest {
 
     @Test
     void testSkip() throws IOException {
-        var name = new ColumnDesc("test",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.INT_LE,
-                StorageType.PLAIN
-        );
+
+        var columnDesc = new IntColumn("test", StorageType.PLAIN);
+
 
 
         int[] values = new int[24];
         for (int i = 0; i < values.length; i++) {
             values[i] = i;
         }
-        try (var column = IntColumn.create(tempDir, name)) {
+        try (var table = new SlopTable()) {
+            var column = columnDesc.create(table, tempDir);
             column.put(values);
             column.put(values);
         }
-        try (var column = IntColumn.open(tempDir, name)) {
+        try (var table = new SlopTable()) {
+            var column = columnDesc.open(table, tempDir);
             column.get();
             column.get();
             column.skip(34);

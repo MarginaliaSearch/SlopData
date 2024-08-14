@@ -1,13 +1,11 @@
 package nu.marginalia.slop.column;
 
-import nu.marginalia.slop.desc.ColumnDesc;
-
 import java.io.IOException;
 import java.util.function.Predicate;
 
 public interface ObjectColumnReader<T> extends ColumnReader {
 
-    ColumnDesc<?, ?> columnDesc();
+    AbstractColumn<?, ?> columnDesc();
 
     T get() throws IOException;
 

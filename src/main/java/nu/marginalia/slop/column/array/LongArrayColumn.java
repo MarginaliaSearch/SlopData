@@ -1,59 +1,66 @@
 package nu.marginalia.slop.column.array;
 
+import nu.marginalia.slop.column.*;
 import nu.marginalia.slop.column.dynamic.VarintColumn;
-import nu.marginalia.slop.column.dynamic.VarintColumnReader;
-import nu.marginalia.slop.column.dynamic.VarintColumnWriter;
-import nu.marginalia.slop.desc.ColumnDesc;
 import nu.marginalia.slop.desc.ColumnFunction;
-import nu.marginalia.slop.ColumnTypes;
 import nu.marginalia.slop.desc.StorageType;
 import nu.marginalia.slop.storage.Storage;
 import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.file.Path;
 
-public class LongArrayColumn {
+public class LongArrayColumn extends AbstractObjectColumn<long[], LongArrayColumn.Reader, LongArrayColumn.Writer> {
+    private final VarintColumn lengthsColumn;
 
-    public static LongArrayColumnReader open(Path path, ColumnDesc columnDesc) throws IOException {
+    public LongArrayColumn(String name) {
+        this(name, StorageType.PLAIN);
+    }
+
+    public LongArrayColumn(String name, StorageType storageType) {
+        this(name, ByteOrder.nativeOrder(), storageType);
+    }
+
+    public LongArrayColumn(String name, ByteOrder byteOrder, StorageType storageType) {
+        super(name,
+                "s64" + (byteOrder == ByteOrder.BIG_ENDIAN ? "be" : "le") + "[]",
+                byteOrder,
+                ColumnFunction.DATA,
+                storageType);
+        lengthsColumn = new VarintColumn(name, ColumnFunction.DATA_LEN, StorageType.PLAIN);
+    }
+
+    @Override
+    public LongArrayColumn.Reader openUnregistered(Path path, int page) throws IOException {
         return new LongArrayColumn.Reader(
-                columnDesc,
-                Storage.reader(path, columnDesc, true),
-                VarintColumn.open(path, columnDesc.createSupplementaryColumn(ColumnFunction.DATA_LEN, ColumnTypes.VARINT_LE, StorageType.PLAIN))
+                Storage.reader(path, this, page, true),
+                lengthsColumn.openUnregistered(path, page)
         );
     }
 
-    public static LongArrayColumnWriter create(Path path, ColumnDesc columnDesc) throws IOException {
+    @Override
+    public LongArrayColumn.Writer createUnregistered(Path path, int page) throws IOException {
         return new LongArrayColumn.Writer(
-                columnDesc,
-                Storage.writer(path, columnDesc),
-                VarintColumn.create(path, columnDesc.createSupplementaryColumn(ColumnFunction.DATA_LEN, ColumnTypes.VARINT_LE, StorageType.PLAIN))
-        );
+                Storage.writer(path, this, page),
+                lengthsColumn.createUnregistered(path, page)
+                );
     }
 
-    public static ObjectArrayColumnReader<long[]> openNested(Path path, ColumnDesc desc) throws IOException {
-        return ObjectArrayColumn.open(path, desc, open(path, desc));
-    }
 
-    public static ObjectArrayColumnWriter<long[]> createNested(Path path, ColumnDesc desc) throws IOException {
-        return ObjectArrayColumn.create(path, desc, create(path, desc));
-    }
-
-    private static class Writer implements LongArrayColumnWriter {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Writer implements ObjectColumnWriter<long[]> {
         private final StorageWriter storage;
-        private final VarintColumnWriter lengthsWriter;
+        private final VarintColumn.Writer lengthsWriter;
 
-        public Writer(ColumnDesc<?,?> columnDesc, StorageWriter storage, VarintColumnWriter lengthsWriter) throws IOException {
-            this.columnDesc = columnDesc;
+        Writer(StorageWriter storage, VarintColumn.Writer lengthsWriter) {
             this.storage = storage;
             this.lengthsWriter = lengthsWriter;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return LongArrayColumn.this;
         }
 
         public void put(long[] value) throws IOException {
@@ -71,20 +78,18 @@ public class LongArrayColumn {
         }
     }
 
-    private static class Reader implements LongArrayColumnReader {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Reader implements ObjectColumnReader<long[]> {
         private final StorageReader storage;
-        private final VarintColumnReader lengthsReader;
+        private final VarintColumn.Reader lengthsReader;
 
-        public Reader(ColumnDesc<?, ?> columnDesc, StorageReader storage, VarintColumnReader lengthsReader) {
-            this.columnDesc = columnDesc;
+        Reader(StorageReader storage, VarintColumn.Reader lengthsReader) {
             this.storage = storage;
             this.lengthsReader = lengthsReader;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return LongArrayColumn.this;
         }
 
         public long[] get() throws IOException {

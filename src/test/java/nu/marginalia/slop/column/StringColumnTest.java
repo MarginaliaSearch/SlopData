@@ -1,6 +1,9 @@
 package nu.marginalia.slop.column;
 
-import nu.marginalia.slop.ColumnTypes;
+import nu.marginalia.slop.SlopTable;
+import nu.marginalia.slop.column.string.CStringColumn;
+import nu.marginalia.slop.column.string.StringColumn;
+import nu.marginalia.slop.column.string.TxtStringColumn;
 import nu.marginalia.slop.desc.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,20 +56,16 @@ class StringColumnTest {
 
     @Test
     void testArrayStr() throws IOException {
-        var name = new ColumnDesc<>("test",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.STRING,
-                StorageType.GZIP);
+        var columnDesc = new StringColumn("test", StorageType.PLAIN);
 
         try (var table = new SlopTable(0)) {
-            var column = name.create(table, tempDir);
+            var column = columnDesc.create(table, tempDir);
 
             column.put("Lorem");
             column.put("Ipsum");
         }
         try (var table = new SlopTable(0)) {
-            var column = name.open(table, tempDir);
+            var column = columnDesc.open(table, tempDir);
 
             assertEquals("Lorem", column.get());
             assertEquals("Ipsum", column.get());
@@ -76,19 +75,15 @@ class StringColumnTest {
 
     @Test
     void testCStr() throws IOException {
-        var name = new ColumnDesc<>("test",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.CSTRING,
-                StorageType.GZIP);
+        var columnDesc = new CStringColumn("test", StorageType.PLAIN);
 
         try (var table = new SlopTable(0)) {
-            var column = name.create(table, tempDir);
+            var column = columnDesc.create(table, tempDir);
             column.put("Lorem");
             column.put("Ipsum");
         }
         try (var table = new SlopTable(0)) {
-            var column = name.open(table, tempDir);
+            var column = columnDesc.open(table, tempDir);
             assertEquals("Lorem", column.get());
             assertEquals("Ipsum", column.get());
             assertFalse(column.hasRemaining());
@@ -97,19 +92,15 @@ class StringColumnTest {
 
     @Test
     void testTxtStr() throws IOException {
-        var name = new ColumnDesc<>("test",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.TXTSTRING,
-                StorageType.GZIP);
+        var columnDesc = new TxtStringColumn("test", StorageType.PLAIN);
 
         try (var table = new SlopTable(0)) {
-            var column = name.create(table, tempDir);
+            var column = columnDesc.create(table, tempDir);
             column.put("Lorem");
             column.put("Ipsum");
         }
         try (var table = new SlopTable(0)) {
-            var column = name.open(table, tempDir);
+            var column = columnDesc.open(table, tempDir);
             assertEquals("Lorem", column.get());
             assertEquals("Ipsum", column.get());
             assertFalse(column.hasRemaining());

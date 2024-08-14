@@ -1,61 +1,66 @@
 package nu.marginalia.slop.column.array;
 
+import nu.marginalia.slop.column.*;
 import nu.marginalia.slop.column.dynamic.VarintColumn;
-import nu.marginalia.slop.column.dynamic.VarintColumnReader;
-import nu.marginalia.slop.column.dynamic.VarintColumnWriter;
-import nu.marginalia.slop.desc.ColumnDesc;
 import nu.marginalia.slop.desc.ColumnFunction;
-import nu.marginalia.slop.ColumnTypes;
 import nu.marginalia.slop.desc.StorageType;
 import nu.marginalia.slop.storage.Storage;
 import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.file.Path;
 
-public class ByteArrayColumn {
+public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColumn.Reader, ByteArrayColumn.Writer> {
 
-    public static ByteArrayColumnReader open(Path path, ColumnDesc columnDesc) throws IOException {
-        return new Reader(
-                columnDesc,
-                Storage.reader(path, columnDesc, true),
-                VarintColumn.open(path, columnDesc.createSupplementaryColumn(ColumnFunction.DATA_LEN, ColumnTypes.VARINT_LE, StorageType.PLAIN))
+    private final VarintColumn lengthColumn;
+
+    public ByteArrayColumn(String name) {
+        this(name, StorageType.PLAIN);
+    }
+
+    public ByteArrayColumn(String name, StorageType storageType) {
+        this(name, ColumnFunction.DATA, storageType);
+    }
+
+    public ByteArrayColumn(String name, ColumnFunction function, StorageType storageType) {
+        super(name, "s8[]", ByteOrder.nativeOrder(), function, storageType);
+
+        lengthColumn = new VarintColumn(name, function.lengthsTable(), StorageType.PLAIN);
+    }
+
+    @Override
+    public ByteArrayColumn.Reader openUnregistered(Path path, int page) throws IOException {
+        return new ByteArrayColumn.Reader(
+                Storage.reader(path, this, page,true),
+                lengthColumn.openUnregistered(path, page)
+                );
+    }
+
+    @Override
+    public ByteArrayColumn.Writer createUnregistered(Path path, int page) throws IOException {
+        return new ByteArrayColumn.Writer(
+                Storage.writer(path, this, page),
+                lengthColumn.createUnregistered(path, page)
         );
     }
 
-    public static ByteArrayColumnWriter create(Path path, ColumnDesc columnDesc) throws IOException {
-        return new Writer(
-                columnDesc,
-                Storage.writer(path, columnDesc),
-                VarintColumn.create(path, columnDesc.createSupplementaryColumn(ColumnFunction.DATA_LEN, ColumnTypes.VARINT_LE, StorageType.PLAIN))
-        );
-    }
 
-    public static ObjectArrayColumnReader<byte[]> openNested(Path path, ColumnDesc desc) throws IOException {
-        return ObjectArrayColumn.open(path, desc, open(path, desc));
-    }
-
-    public static ObjectArrayColumnWriter<byte[]> createNested(Path path, ColumnDesc desc) throws IOException {
-        return ObjectArrayColumn.create(path, desc, create(path, desc));
-    }
-
-    private static class Writer implements ByteArrayColumnWriter {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Writer implements ObjectColumnWriter<byte[]> {
         private final StorageWriter storage;
-        private final VarintColumnWriter lengthsWriter;
+        private final VarintColumn.Writer lengthsWriter;
 
         private long position = 0;
 
-        public Writer(ColumnDesc<?, ?> columnDesc, StorageWriter storage, VarintColumnWriter lengthsWriter) throws IOException {
-            this.columnDesc = columnDesc;
+        Writer(StorageWriter storage, VarintColumn.Writer lengthsWriter) {
             this.storage = storage;
             this.lengthsWriter = lengthsWriter;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return ByteArrayColumn.this;
         }
 
         public void put(byte[] value) throws IOException {
@@ -74,20 +79,18 @@ public class ByteArrayColumn {
         }
     }
 
-    private static class Reader implements ByteArrayColumnReader {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Reader implements ObjectColumnReader<byte[]> {
         private final StorageReader storage;
-        private final VarintColumnReader lengthsReader;
+        private final VarintColumn.Reader lengthsReader;
 
-        public Reader(ColumnDesc<?, ?> columnDesc, StorageReader storage, VarintColumnReader lengthsReader) throws IOException {
-            this.columnDesc = columnDesc;
+        public Reader(StorageReader storage, VarintColumn.Reader lengthsReader) throws IOException {
             this.storage = storage;
             this.lengthsReader = lengthsReader;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return ByteArrayColumn.this;
         }
 
         public byte[] get() throws IOException {

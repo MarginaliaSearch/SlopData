@@ -1,57 +1,71 @@
 package nu.marginalia.slop.column.array;
 
+import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.AbstractObjectColumn;
+import nu.marginalia.slop.column.ObjectColumnReader;
+import nu.marginalia.slop.column.ObjectColumnWriter;
 import nu.marginalia.slop.column.dynamic.VarintColumn;
-import nu.marginalia.slop.column.dynamic.VarintColumnReader;
-import nu.marginalia.slop.column.dynamic.VarintColumnWriter;
-import nu.marginalia.slop.desc.ColumnDesc;
 import nu.marginalia.slop.desc.ColumnFunction;
-import nu.marginalia.slop.ColumnTypes;
 import nu.marginalia.slop.desc.StorageType;
 import nu.marginalia.slop.storage.Storage;
 import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.file.Path;
 
-public class IntArrayColumn {
+public class IntArrayColumn extends AbstractObjectColumn<int[], IntArrayColumn.Reader, IntArrayColumn.Writer> {
 
-    public static IntArrayColumnReader open(Path path, ColumnDesc columnDesc) throws IOException {
-        return new Reader(columnDesc,
-                Storage.reader(path, columnDesc, true),
-                VarintColumn.open(path, columnDesc.createSupplementaryColumn(ColumnFunction.DATA_LEN, ColumnTypes.VARINT_LE, StorageType.PLAIN))
+    private final VarintColumn lengthColumn;
+
+    public IntArrayColumn(String name) {
+        this(name, StorageType.PLAIN);
+    }
+
+    public IntArrayColumn(String name, StorageType storageType) {
+        this(name, ByteOrder.nativeOrder(), storageType);
+    }
+
+    public IntArrayColumn(String name, ByteOrder byteOrder, StorageType storageType) {
+        super(name,
+                "s32" + (byteOrder == ByteOrder.BIG_ENDIAN ? "be" : "le") + "[]",
+                byteOrder,
+                ColumnFunction.DATA,
+                storageType);
+
+        lengthColumn = new VarintColumn(name, ColumnFunction.DATA_LEN, StorageType.PLAIN);
+    }
+
+
+    @Override
+    public IntArrayColumn.Reader openUnregistered(Path path, int page) throws IOException {
+        return new IntArrayColumn.Reader(
+                Storage.reader(path, this, page, true),
+                lengthColumn.openUnregistered(path, page)
+                );
+    }
+
+    @Override
+    public IntArrayColumn.Writer createUnregistered(Path path, int page) throws IOException {
+        return new IntArrayColumn.Writer(
+                Storage.writer(path, this, page),
+                lengthColumn.createUnregistered(path, page)
         );
     }
 
-    public static IntArrayColumnWriter create(Path path, ColumnDesc columnDesc) throws IOException {
-        return new Writer(columnDesc,
-                Storage.writer(path, columnDesc),
-                VarintColumn.create(path, columnDesc.createSupplementaryColumn(ColumnFunction.DATA_LEN, ColumnTypes.VARINT_LE, StorageType.PLAIN))
-        );
-    }
-
-    public static ObjectArrayColumnReader<int[]> openNested(Path path, ColumnDesc desc) throws IOException {
-        return ObjectArrayColumn.open(path, desc, open(path, desc));
-    }
-
-    public static ObjectArrayColumnWriter<int[]> createNested(Path path, ColumnDesc desc) throws IOException {
-        return ObjectArrayColumn.create(path, desc, create(path, desc));
-    }
-
-    private static class Writer implements IntArrayColumnWriter {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Writer implements ObjectColumnWriter<int[]> {
         private final StorageWriter storage;
-        private final VarintColumnWriter lengthsWriter;
+        private final VarintColumn.Writer lengthsWriter;
 
-        public Writer(ColumnDesc<?, ?> columnDesc, StorageWriter storage, VarintColumnWriter lengthsWriter) throws IOException {
-            this.columnDesc = columnDesc;
+        Writer(StorageWriter storage, VarintColumn.Writer lengthsWriter) {
             this.storage = storage;
             this.lengthsWriter = lengthsWriter;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return IntArrayColumn.this;
         }
 
         public void put(int[] value) throws IOException {
@@ -69,20 +83,18 @@ public class IntArrayColumn {
         }
     }
 
-    private static class Reader implements IntArrayColumnReader {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Reader implements ObjectColumnReader<int[]> {
         private final StorageReader storage;
-        private final VarintColumnReader lengthsReader;
+        private final VarintColumn.Reader lengthsReader;
 
-        public Reader(ColumnDesc<?, ?> columnDesc, StorageReader storage, VarintColumnReader lengthsReader) {
-            this.columnDesc = columnDesc;
+        Reader(StorageReader storage, VarintColumn.Reader lengthsReader) {
             this.storage = storage;
             this.lengthsReader = lengthsReader;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return IntArrayColumn.this;
         }
 
         public int[] get() throws IOException {

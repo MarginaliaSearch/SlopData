@@ -1,61 +1,72 @@
 package nu.marginalia.slop.column.dynamic;
 
-import nu.marginalia.slop.desc.ColumnDesc;
+import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.ColumnReader;
+import nu.marginalia.slop.column.ColumnWriter;
 import nu.marginalia.slop.desc.ColumnFunction;
-import nu.marginalia.slop.ColumnTypes;
 import nu.marginalia.slop.desc.StorageType;
 import nu.marginalia.slop.storage.Storage;
 import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.file.Path;
 
-public class CustomBinaryColumn {
+public class CustomBinaryColumn extends AbstractColumn<CustomBinaryColumn.Reader, CustomBinaryColumn.Writer> {
 
-    public static CustomBinaryColumnReader open(Path path, ColumnDesc columnDesc) throws IOException {
-        return new Reader(
-                columnDesc,
-                Storage.reader(path, columnDesc, false), // note we must never pass aligned=true here, as the data is not guaranteed alignment
-                VarintColumn.open(path, columnDesc.createSupplementaryColumn(ColumnFunction.DATA_LEN,
-                        ColumnTypes.VARINT_LE,
-                        StorageType.PLAIN)
-                )
-        );
+    private final VarintColumn lengthColumn;
+
+    public CustomBinaryColumn(String name) {
+        this(name, ColumnFunction.DATA, StorageType.PLAIN);
     }
 
-    public static CustomBinaryColumnWriter create(Path path, ColumnDesc columnDesc) throws IOException {
-        return new Writer(
-                columnDesc,
-                Storage.writer(path, columnDesc),
-                VarintColumn.create(path, columnDesc.createSupplementaryColumn(ColumnFunction.DATA_LEN,
-                        ColumnTypes.VARINT_LE,
-                        StorageType.PLAIN)
-                )
-        );
+    public CustomBinaryColumn(String name, StorageType storageType) {
+        this(name, ColumnFunction.DATA, storageType);
     }
 
-    private static class Writer implements CustomBinaryColumnWriter {
-        private final VarintColumnWriter indexWriter;
-        private final ColumnDesc<?, ?> columnDesc;
+    public CustomBinaryColumn(String name, ColumnFunction function, StorageType storageType) {
+        super(name,
+                "s8[]+custom",
+                ByteOrder.nativeOrder(),
+                function,
+                storageType);
+        lengthColumn = new VarintColumn(name, ColumnFunction.DATA_LEN, StorageType.PLAIN);
+    }
+
+    @Override
+    public CustomBinaryColumn.Reader openUnregistered(Path path, int page) throws IOException {
+        return new CustomBinaryColumn.Reader(
+                Storage.reader(path, this, page, true),
+                lengthColumn.openUnregistered(path, page)
+                );
+    }
+
+    @Override
+    public CustomBinaryColumn.Writer createUnregistered(Path path, int page) throws IOException {
+        return new CustomBinaryColumn.Writer(
+                Storage.writer(path, this, page),
+                lengthColumn.createUnregistered(path, page)
+                );
+    }
+
+    public class Writer implements ColumnWriter {
+        private final VarintColumn.Writer indexWriter;
         private final StorageWriter storage;
 
-        public Writer(ColumnDesc<?, ?> columnDesc,
-                      StorageWriter storage,
-                      VarintColumnWriter indexWriter)
+        public Writer(StorageWriter storage,
+                      VarintColumn.Writer indexWriter)
         {
-            this.columnDesc = columnDesc;
             this.storage = storage;
             this.indexWriter = indexWriter;
         }
 
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return CustomBinaryColumn.this;
         }
 
-        @Override
         public RecordWriter next() throws IOException {
             return new RecordWriter() {
                 long pos = storage.position();
@@ -82,20 +93,19 @@ public class CustomBinaryColumn {
         }
     }
 
-    private static class Reader implements CustomBinaryColumnReader {
-        private final VarintColumnReader indexReader;
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Reader implements ColumnReader {
+        private final VarintColumn.Reader indexReader;
         private final StorageReader storage;
 
-        public Reader(ColumnDesc<?, ?> columnDesc, StorageReader reader, VarintColumnReader indexReader) throws IOException {
-            this.columnDesc = columnDesc;
+        Reader(StorageReader reader, VarintColumn.Reader indexReader) throws IOException {
             this.storage = reader;
             this.indexReader = indexReader;
         }
 
+
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?, ?> columnDesc() {
+            return CustomBinaryColumn.this;
         }
 
         @Override
@@ -115,7 +125,6 @@ public class CustomBinaryColumn {
             return indexReader.position();
         }
 
-        @Override
         public RecordReader next() throws IOException {
             int size = (int) indexReader.get();
 
@@ -144,5 +153,16 @@ public class CustomBinaryColumn {
             storage.close();
         }
 
+    }
+
+    interface RecordWriter extends AutoCloseable {
+        StorageWriter writer();
+        void close() throws IOException;
+    }
+
+    interface RecordReader extends AutoCloseable {
+        int size();
+        StorageReader reader();
+        void close() throws IOException;
     }
 }

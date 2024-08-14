@@ -1,15 +1,14 @@
 package nu.marginalia.slop.column;
 
 import nu.marginalia.slop.column.array.IntArrayColumn;
-import nu.marginalia.slop.desc.ColumnDesc;
-import nu.marginalia.slop.desc.ColumnFunction;
-import nu.marginalia.slop.ColumnTypes;
+import nu.marginalia.slop.SlopTable;
 import nu.marginalia.slop.desc.StorageType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -55,20 +54,20 @@ class ArrayColumnTest {
 
     @Test
     void test() throws IOException {
-        var name = new ColumnDesc("test",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.INT_ARRAY_LE,
-                StorageType.PLAIN
-        );
+        var arrayCol = new IntArrayColumn("test", ByteOrder.LITTLE_ENDIAN,  StorageType.PLAIN);
 
+        try (var table = new SlopTable()) {
 
-        try (var column = IntArrayColumn.create(tempDir, name)) {
+            var column = arrayCol.create(table, tempDir);
+
             column.put(new int[] { 11, 22, 33});
             column.put(new int[] { 2 });
             column.put(new int[] { 444 });
         }
-        try (var column = IntArrayColumn.open(tempDir, name)) {
+        try (var table = new SlopTable()) {
+
+            var column = arrayCol.open(table, tempDir);
+
             assertArrayEquals(new int[] { 11, 22, 33}, column.get());
             assertArrayEquals(new int[] { 2 }, column.get());
             assertArrayEquals(new int[] { 444 }, column.get());

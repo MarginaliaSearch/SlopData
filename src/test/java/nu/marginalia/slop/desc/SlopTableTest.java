@@ -1,6 +1,14 @@
 package nu.marginalia.slop.desc;
 
-import nu.marginalia.slop.ColumnTypes;
+import nu.marginalia.slop.SlopTable;
+import nu.marginalia.slop.column.array.ByteArrayColumn;
+import nu.marginalia.slop.column.array.IntArrayColumn;
+import nu.marginalia.slop.column.array.LongArrayColumn;
+import nu.marginalia.slop.column.dynamic.VarintColumn;
+import nu.marginalia.slop.column.primitive.*;
+import nu.marginalia.slop.column.string.CStringColumn;
+import nu.marginalia.slop.column.string.StringColumn;
+import nu.marginalia.slop.column.string.TxtStringColumn;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,22 +66,12 @@ public class SlopTableTest {
 
     @Test
     public void testPositionsGood() throws IOException {
-        var name1 = new ColumnDesc<>("test1",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.INT_LE,
-                StorageType.PLAIN
-        );
-        var name2 = new ColumnDesc<>("test2",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.INT_LE,
-                StorageType.PLAIN
-        );
+        var cd1 = new IntColumn("test1", StorageType.PLAIN);
+        var cd2 = new IntColumn("test2", StorageType.PLAIN);
 
         try (SlopTable writerTable = new SlopTable(0)) {
-            var column1 = name1.create(writerTable, tempDir);
-            var column2 = name2.create(writerTable, tempDir);
+            var column1 = cd1.create(writerTable, tempDir);
+            var column2 = cd2.create(writerTable, tempDir);
 
             column1.put(42);
             column2.put(43);
@@ -81,8 +79,8 @@ public class SlopTableTest {
 
 
         try (SlopTable readerTable = new SlopTable(0)) {
-            var column1 = name1.open(readerTable, tempDir);
-            var column2 = name2.open(readerTable, tempDir);
+            var column1 = cd1.open(readerTable, tempDir);
+            var column2 = cd2.open(readerTable, tempDir);
 
             assertEquals(42, column1.get());
             assertEquals(43, column2.get());
@@ -92,23 +90,13 @@ public class SlopTableTest {
 
     @Test
     public void testPositionsMisaligned() throws IOException {
-        var name1 = new ColumnDesc<>("test1",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.INT_LE,
-                StorageType.PLAIN
-        );
-        var name2 = new ColumnDesc<>("test2",
-                0,
-                ColumnFunction.DATA,
-                ColumnTypes.INT_LE,
-                StorageType.PLAIN
-        );
+        var cd1 = new IntColumn("test1", StorageType.PLAIN);
+        var cd2 = new IntColumn("test2", StorageType.PLAIN);
 
         boolean sawException = false;
         try (SlopTable writerTable = new SlopTable(0)) {
-            var column1 = name1.create(writerTable, tempDir);
-            var column2 = name2.create(writerTable, tempDir);
+            var column1 = cd1.create(writerTable, tempDir);
+            var column2 = cd2.create(writerTable, tempDir);
 
             column1.put(42);
             column2.put(43);
@@ -126,20 +114,21 @@ public class SlopTableTest {
     // Sanity check for the implementation of position() in the column classes
     @Test
     public void testPositionsMegatest() throws IOException {
-        var byteCol = new ColumnDesc<>("byte", ColumnTypes.BYTE, StorageType.PLAIN);
-        var charCol = new ColumnDesc<>("char", ColumnTypes.CHAR_LE, StorageType.PLAIN);
-        var intCol = new ColumnDesc<>("int", ColumnTypes.INT_LE, StorageType.PLAIN);
-        var longCol = new ColumnDesc<>("long", ColumnTypes.LONG_LE, StorageType.PLAIN);
-        var floatCol = new ColumnDesc<>("float", ColumnTypes.FLOAT_LE, StorageType.PLAIN);
-        var doubleCol = new ColumnDesc<>("double", ColumnTypes.DOUBLE_LE, StorageType.PLAIN);
-        var byteArrayCol = new ColumnDesc<>("byteArray", ColumnTypes.BYTE_ARRAY, StorageType.PLAIN);
-        var intArrayCol = new ColumnDesc<>("intArray", ColumnTypes.INT_ARRAY_LE, StorageType.PLAIN);
-        var longArrayCol = new ColumnDesc<>("longArray", ColumnTypes.LONG_ARRAY_LE, StorageType.PLAIN);
-        var cstringCol = new ColumnDesc<>("cstring", ColumnTypes.CSTRING, StorageType.PLAIN);
-        var txtStringCol = new ColumnDesc<>("txtString", ColumnTypes.TXTSTRING, StorageType.PLAIN);
-        var arrayStringCol = new ColumnDesc<>("arrayString", ColumnTypes.STRING, StorageType.PLAIN);
-        var varintCol = new ColumnDesc<>("varint", ColumnTypes.VARINT_LE, StorageType.PLAIN);
-        var enumCol = new ColumnDesc<>("enum", ColumnTypes.ENUM_LE, StorageType.PLAIN);
+        var byteCol = new ByteColumn("byte");
+        var charCol = new CharColumn("char");
+        var intCol = new IntColumn("int");
+        var longCol = new LongColumn("long");
+        var floatCol = new FloatColumn("float");
+        var doubleCol = new DoubleColumn("double");
+        var byteArrayCol = new ByteArrayColumn("byteArray");
+        var intArrayCol = new IntArrayColumn("intArray");
+        var longArrayCol = new LongArrayColumn("longArray");
+        var cstringCol = new CStringColumn("cstring");
+        var txtStringCol = new TxtStringColumn("txtString");
+        var arrayStringCol = new StringColumn("arrayString");
+        var varintCol = new VarintColumn("varint");
+        var enumCol = new StringColumn("enum");
+
 
         try (SlopTable writerTable = new SlopTable(0)) {
             var byteColumn = byteCol.create(writerTable, tempDir);

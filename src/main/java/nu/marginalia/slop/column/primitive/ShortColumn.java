@@ -1,37 +1,59 @@
 package nu.marginalia.slop.column.primitive;
 
-import nu.marginalia.slop.desc.ColumnDesc;
+import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.ColumnReader;
+import nu.marginalia.slop.column.ColumnWriter;
+import nu.marginalia.slop.desc.ColumnFunction;
+import nu.marginalia.slop.desc.StorageType;
 import nu.marginalia.slop.storage.Storage;
 import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.file.Path;
 
-public class ShortColumn {
+public class ShortColumn extends AbstractColumn<ShortColumn.Reader, ShortColumn.Writer> {
 
-    public static ShortColumnReader open(Path path, ColumnDesc columnDesc) throws IOException {
-        return new Reader(columnDesc, Storage.reader(path, columnDesc, true));
+    public ShortColumn(String name) {
+        this(name, ByteOrder.nativeOrder(), ColumnFunction.DATA, StorageType.PLAIN);
     }
 
-    public static ShortColumnWriter create(Path path, ColumnDesc columnDesc) throws IOException {
-        return new Writer(columnDesc, Storage.writer(path, columnDesc));
+    public ShortColumn(String name, StorageType storageType) {
+        this(name, ByteOrder.nativeOrder(), ColumnFunction.DATA, storageType);
     }
 
-    private static class Writer implements ShortColumnWriter {
-        private final ColumnDesc<?, ?> columnDesc;
+    public ShortColumn(String name, ByteOrder byteOrder, StorageType storageType) {
+        this(name, byteOrder, ColumnFunction.DATA, storageType);
+    }
+
+    public ShortColumn(String name, ByteOrder byteOrder, ColumnFunction function, StorageType storageType) {
+        super(name, "s16" + (byteOrder == ByteOrder.BIG_ENDIAN ? "be" : "le"), byteOrder, function, storageType);
+    }
+
+    @Override
+    public Reader openUnregistered(Path path, int page) throws IOException {
+        return new Reader(Storage.reader(path, this, page, true));
+    }
+
+    @Override
+    public Writer createUnregistered(Path path, int page) throws IOException {
+        return new Writer(Storage.writer(path, this, page));
+    }
+
+    public class Writer implements ColumnWriter {
         private final StorageWriter storage;
         private long position = 0;
 
-        public Writer(ColumnDesc<?, ?> columnDesc, StorageWriter storageWriter) throws IOException {
-            this.columnDesc = columnDesc;
+        Writer(StorageWriter storageWriter) {
             this.storage = storageWriter;
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?,?> columnDesc() {
+            return ShortColumn.this;
         }
+
 
         public void put(short value) throws IOException {
             storage.putShort(value);
@@ -47,12 +69,10 @@ public class ShortColumn {
         }
     }
 
-    private static class Reader implements ShortColumnReader {
-        private final ColumnDesc<?, ?> columnDesc;
+    public class Reader implements ColumnReader {
         private final StorageReader storage;
 
-        public Reader(ColumnDesc<?, ?> columnDesc, StorageReader storage) throws IOException {
-            this.columnDesc = columnDesc;
+        public Reader(StorageReader storage) throws IOException {
             this.storage = storage;
         }
 
@@ -61,9 +81,10 @@ public class ShortColumn {
         }
 
         @Override
-        public ColumnDesc<?, ?> columnDesc() {
-            return columnDesc;
+        public AbstractColumn<?,?> columnDesc() {
+            return ShortColumn.this;
         }
+
 
         @Override
         public long position() throws IOException {

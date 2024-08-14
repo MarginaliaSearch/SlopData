@@ -1,9 +1,7 @@
 package nu.marginalia.slop.column;
 
 import nu.marginalia.slop.column.string.EnumColumn;
-import nu.marginalia.slop.desc.ColumnDesc;
-import nu.marginalia.slop.desc.ColumnFunction;
-import nu.marginalia.slop.ColumnTypes;
+import nu.marginalia.slop.SlopTable;
 import nu.marginalia.slop.desc.StorageType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,9 +61,11 @@ class EnumColumnTest {
 
     @Test
     void test() throws IOException {
-        var name = new ColumnDesc("test", ColumnTypes.ENUM_BE, StorageType.PLAIN);
+        var enumCol = new EnumColumn("test", StorageType.PLAIN);
 
-        try (var column = EnumColumn.create(tempDir, name)) {
+        try (var table = new SlopTable()) {
+            var column = enumCol.create(table, tempDir);
+
             column.put("Foo");
             column.put("Bar");
             column.put("Baz");
@@ -75,7 +75,9 @@ class EnumColumnTest {
             column.put("Baz");
         }
 
-        try (var column = EnumColumn.open(tempDir, name)) {
+        try (var table = new SlopTable()) {
+            var column = enumCol.open(table, tempDir);
+
             assertEquals("Foo", column.get());
             assertEquals("Bar", column.get());
             assertEquals("Baz", column.get());
