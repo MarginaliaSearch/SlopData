@@ -18,9 +18,9 @@ public class ObjectArrayColumn<T> extends AbstractObjectColumn<List<T>, ObjectAr
     private final VarintColumn groupLengthColumn;
     private final AbstractObjectColumn<T, ?, ?> wrappingColumn;
 
-    public ObjectArrayColumn(String name, AbstractObjectColumn<T, ?, ?> wrappingColumn) {
-        super(name,
-                wrappingColumn.typeMnemonic + "[]",
+    public ObjectArrayColumn(AbstractObjectColumn<T, ?, ?> wrappingColumn) {
+        super(wrappingColumn.name,
+                wrappingColumn.typeMnemonic + "[]", // not used
                 ByteOrder.nativeOrder(),
                 ColumnFunction.DATA,
                 wrappingColumn.storageType);
