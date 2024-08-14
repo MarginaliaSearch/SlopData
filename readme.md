@@ -103,8 +103,9 @@ of portability.
 
 With Slop it's desirable to keep the schema information in the code.  
 
-The data is stored in a directory, and the data is written and read using the `MyData.Writer` and `MyData.Reader` classes.  
-The `MyData` class is itself is a record, and the schema is stored as static fields in the `MyData` class.
+Below is an idiomatic example of how to use Slop to store demographic data.  The data is stored in a directory, 
+and the data is written and read using the `MyData.Writer` and `MyData.Reader` classes.  The `MyData` class is 
+itself is a record, and the schema is stored as static fields in the `MyData` class.
 
 ```java
 public record Population(String city, int population, double avgAge) {
@@ -116,7 +117,7 @@ public record Population(String city, int population, double avgAge) {
 
     // Extend SlopTable to ensure that the columns are closed when the table is closed,
     // and adds basic sanity checks to ensure that the columns are in sync.
-    public static class Writer extends SlopTable {
+    public static class Writer extends SlopTable {   // (SlopTable implements AutoCloseable) 
         private final StringColumn.Writer citiesWriter;
         private final IntColumn.Writer populationWriter;
         private final DoubleColumn.Writer avgAgeWriter;
@@ -160,6 +161,11 @@ public record Population(String city, int population, double avgAge) {
     }
 }
 ```
+
+A distinguishing feature of Slop is that there is no set-up or configuration anywhere, you just specify what you want
+to do in the code, and it does what you've told it to.  There's also very little in terms of indirection, the Reader
+and Writer classes associated with each column type are the actual implementation classes that do the reading and
+writing.  You can go look at them, or even copy them and make your own column type if you want to.
 
 ## Nested Records
 
