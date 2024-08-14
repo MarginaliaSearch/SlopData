@@ -55,10 +55,14 @@ A table of demographic information may end up stored in files like this:
 
 ```text
 cities.0.dat.s8[].gz
-cities.0.dat-len.varint-le.bin
+cities.0.dat-len.varint.bin
 population.0.dat.s32le.bin
 average-age.0.dat.f64le.gz
 ```
+
+(Endianness is specified in the file name because old and new Java utilities for dealing
+with raw binary data have different default endianness and labelling the files makes it 
+easier to know which is which.)
 
 The Slop library offers a bare minimum of facilities to aid with data integrity, 
 such as the SlopTable class, which is a wrapper that ensures consistent positions 
@@ -99,27 +103,25 @@ of portability.
 
 ## Example
 
-With Slop it's desirable to keep the schema information in the code.  This is an example of how you might use Slop to
-store a table of data with three columns: source, dest, and counts.  The source and dest columns are strings, and the
-counts column is an integer that's stored wit a varint-coding (i.e. like how utf-8 works).  
+With Slop it's desirable to keep the schema information in the code.  
 
 The data is stored in a directory, and the data is written and read using the `MyData.Writer` and `MyData.Reader` classes.  
 The `MyData` class is itself is a record, and the schema is stored as static fields in the `MyData` class.
 
 ```java
-record Population(String city, int population, double avgAge) {
+public record Population(String city, int population, double avgAge) {
 
-    private static final ColumnDesc<StringColumnReader, StringColumnWriter> citiesColumn =
-            new ColumnDesc<>("cities", ColumnTypes.STRING, StorageType.GZIP);
-    private static final ColumnDesc<IntColumnReader, IntColumnWriter> populationColumn =
-            new ColumnDesc<>("population", ColumnTypes.INT_LE, StorageType.PLAIN);
-    private static final ColumnDesc<DoubleColumnReader, DoubleColumnWriter> averageAgeColumnn =
-            new ColumnDesc<>("average-age", ColumnTypes.DOUBLE_LE, StorageType.PLAIN);
+    // This is the schema, and it's specified in code
+    private static final StringColumn citiesColumn = new StringColumn("cities", StorageType.GZIP);
+    private static final IntColumn populationColumn = new IntColumn("population", StorageType.PLAIN);
+    private static final DoubleColumn averageAgeColumn = new DoubleColumn("average-age", StorageType.PLAIN);
 
+    // Extend SlopTable to ensure that the columns are closed when the table is closed,
+    // and adds basic sanity checks to ensure that the columns are in sync.
     public static class Writer extends SlopTable {
-        private final StringColumnWriter citiesWriter;
-        private final IntColumnWriter populationWriter;
-        private final DoubleColumnWriter avgAgeWriter;
+        private final StringColumn.Writer citiesWriter;
+        private final IntColumn.Writer populationWriter;
+        private final DoubleColumn.Writer avgAgeWriter;
 
         public Writer(Path baseDir) throws IOException {
             citiesWriter = citiesColumn.create(this, baseDir);
@@ -134,10 +136,11 @@ record Population(String city, int population, double avgAge) {
         }
     }
 
+    // Reader also extends SlopTable, for the same reasons as the Writer
     public static class Reader extends SlopTable {
-        private final StringColumnReader citiesReader;
-        private final IntColumnReader populationReader;
-        private final DoubleColumnReader avgAgeReader;
+        private final StringColumn.Reader citiesReader;
+        private final IntColumn.Reader populationReader;
+        private final DoubleColumn.Reader avgAgeReader;
 
         public Reader(Path baseDir) throws IOException {
             citiesReader = citiesColumn.open(this, baseDir);
