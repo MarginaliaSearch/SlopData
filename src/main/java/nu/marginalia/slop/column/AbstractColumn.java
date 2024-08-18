@@ -5,6 +5,7 @@ import nu.marginalia.slop.SlopTable;
 import nu.marginalia.slop.desc.StorageType;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 
@@ -32,13 +33,31 @@ public abstract class AbstractColumn<R extends ColumnReader, W extends ColumnWri
         return name + "." + page + "." +  function.nmnemonic + "." + typeMnemonic + "." + storageType.nmnemonic;
     }
 
-    public abstract R openUnregistered(Path path, int page) throws IOException;
+    /** Open table for reading, without registering it meaning it's on the caller's
+     * responsibility to ensure it is closed
+     */
+    public abstract R openUnregistered(URI uri, int page) throws IOException;
+
+    /** Open table for writing, without registering it meaning it's on the caller's
+     * responsibility to ensure it is closed
+     */
     public abstract W createUnregistered(Path path, int page) throws IOException;
 
-    public R open(SlopTable table, Path path) throws IOException {
-        return table.register(openUnregistered(path, table.page));
+    /** Open a column for reading, registering it to the table */
+    public R open(SlopTable table, URI uri) throws IOException {
+        return table.register(openUnregistered(uri, table.page));
     }
 
+    /** Open a column for reading, registering it to the table.
+     * <p></p>
+     * This is a convenience method that provides symmetry with create,
+     * that also takes a Path.
+     */
+    public R open(SlopTable table, Path path) throws IOException {
+        return table.register(openUnregistered(path.toUri(), table.page));
+    }
+
+    /** Open a column for writing, registering it to the table */
     public W create(SlopTable table, Path path) throws IOException {
         return table.register(createUnregistered(path, table.page));
     }

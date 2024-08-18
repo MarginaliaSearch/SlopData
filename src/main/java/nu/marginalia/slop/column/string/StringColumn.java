@@ -6,6 +6,7 @@ import nu.marginalia.slop.desc.ColumnFunction;
 import nu.marginalia.slop.desc.StorageType;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 
@@ -29,8 +30,8 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
     }
 
     @Override
-    public StringColumn.Reader openUnregistered(Path path, int page) throws IOException {
-        return new StringColumn.Reader(backingColumn.openUnregistered(path, page));
+    public StringColumn.Reader openUnregistered(URI uri, int page) throws IOException {
+        return new StringColumn.Reader(backingColumn.openUnregistered(uri, page));
     }
 
     @Override

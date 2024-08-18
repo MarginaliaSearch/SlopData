@@ -8,6 +8,7 @@ import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 
@@ -26,8 +27,8 @@ public class TxtStringColumn extends AbstractObjectColumn<String, TxtStringColum
     }
 
     @Override
-    public Reader openUnregistered(Path path, int page) throws IOException {
-        return new Reader(Storage.reader(path, this, page, true));
+    public Reader openUnregistered(URI uri, int page) throws IOException {
+        return new Reader(Storage.reader(uri, this, page, true));
     }
 
     @Override

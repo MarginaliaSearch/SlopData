@@ -6,6 +6,7 @@ import nu.marginalia.slop.desc.ColumnFunction;
 import nu.marginalia.slop.desc.StorageType;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -29,15 +30,15 @@ public class EnumColumn extends AbstractObjectColumn<String, EnumColumn.Reader, 
     }
 
     @Override
-    public EnumColumn.Reader openUnregistered(Path path, int page) throws IOException {
+    public Reader openUnregistered(URI uri, int page) throws IOException {
         return new EnumColumn.Reader(
-                dicionaryColumn.openUnregistered(path, page),
-                dataColumn.openUnregistered(path, page)
+                dicionaryColumn.openUnregistered(uri, page),
+                dataColumn.openUnregistered(uri, page)
         );
     }
 
     @Override
-    public EnumColumn.Writer createUnregistered(Path path, int page) throws IOException {
+    public Writer createUnregistered(Path path, int page) throws IOException {
         return new EnumColumn.Writer(
                 dicionaryColumn.createUnregistered(path, page),
                 dataColumn.createUnregistered(path, page)

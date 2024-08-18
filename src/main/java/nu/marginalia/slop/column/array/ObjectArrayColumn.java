@@ -9,6 +9,7 @@ import nu.marginalia.slop.desc.ColumnFunction;
 import nu.marginalia.slop.desc.StorageType;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -31,10 +32,10 @@ public class ObjectArrayColumn<T> extends AbstractObjectColumn<List<T>, ObjectAr
 
 
     @Override
-    public ObjectArrayColumn<T>.Reader openUnregistered(Path path, int page) throws IOException {
+    public ObjectArrayColumn<T>.Reader openUnregistered(URI uri, int page) throws IOException {
         return new ObjectArrayColumn<T>.Reader(
-                wrappingColumn.openUnregistered(path, page),
-                groupLengthColumn.openUnregistered(path, page)
+                wrappingColumn.openUnregistered(uri, page),
+                groupLengthColumn.openUnregistered(uri, page)
                 );
     }
 

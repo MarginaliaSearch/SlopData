@@ -12,6 +12,7 @@ import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 
@@ -39,10 +40,10 @@ public class IntArrayColumn extends AbstractObjectColumn<int[], IntArrayColumn.R
 
 
     @Override
-    public IntArrayColumn.Reader openUnregistered(Path path, int page) throws IOException {
+    public IntArrayColumn.Reader openUnregistered(URI uri, int page) throws IOException {
         return new IntArrayColumn.Reader(
-                Storage.reader(path, this, page, true),
-                lengthColumn.openUnregistered(path, page)
+                Storage.reader(uri, this, page, true),
+                lengthColumn.openUnregistered(uri, page)
                 );
     }
 
