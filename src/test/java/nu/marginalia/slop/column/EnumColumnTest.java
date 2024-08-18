@@ -63,8 +63,8 @@ class EnumColumnTest {
     void test() throws IOException {
         var enumCol = new EnumColumn("test", StorageType.PLAIN);
 
-        try (var table = new SlopTable()) {
-            var column = enumCol.create(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = enumCol.create(table);
 
             column.put("Foo");
             column.put("Bar");
@@ -75,8 +75,8 @@ class EnumColumnTest {
             column.put("Baz");
         }
 
-        try (var table = new SlopTable()) {
-            var column = enumCol.open(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = enumCol.open(table);
 
             assertEquals("Foo", column.get());
             assertEquals("Bar", column.get());

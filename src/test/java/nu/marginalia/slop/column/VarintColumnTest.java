@@ -60,8 +60,8 @@ class VarintColumnTest {
     void test() throws IOException {
         var columnDesc = new VarintColumn("test", StorageType.PLAIN);
 
-        try (var table = new SlopTable()) {
-            var column = columnDesc.create(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.create(table);
             column.put(42);
             column.put(43);
             column.put(65534);
@@ -70,8 +70,8 @@ class VarintColumnTest {
             column.put(6000000000L);
             column.put(1);
         }
-        try (var table = new SlopTable()) {
-            var column = columnDesc.open(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.open(table);
 
             assertEquals(42, column.get());
             assertEquals(43, column.get());
@@ -87,14 +87,14 @@ class VarintColumnTest {
     void test22() throws IOException {
         var columnDesc = new VarintColumn("test", StorageType.PLAIN);
 
-        try (var table = new SlopTable()) {
-            var column = columnDesc.create(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.create(table);
             column.put(2);
             column.put(2);
         }
 
-        try (var table = new SlopTable()) {
-            var column = columnDesc.open(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.open(table);
             assertEquals(2, column.get());
             assertEquals(2, column.get());
         }
@@ -115,18 +115,18 @@ class VarintColumnTest {
             values.add(rand.nextLong(0, Long.MAX_VALUE));
         }
 
-        try (var table = new SlopTable()) {
-            var column1 = columnDescVI.create(table, tempDir);
-            var column2 = columnDescLong.create(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column1 = columnDescVI.create(table);
+            var column2 = columnDescLong.create(table);
 
             for (var value : values) {
                 column1.put(value);
                 column2.put(value);
             }
         }
-        try (var table = new SlopTable()) {
-            var column1 = columnDescVI.open(table, tempDir);
-            var column2 = columnDescLong.open(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column1 = columnDescVI.open(table);
+            var column2 = columnDescLong.open(table);
             int idx = 0;
             for (var value : values) {
                 idx++;

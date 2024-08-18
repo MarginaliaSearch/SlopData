@@ -57,13 +57,13 @@ class IntColumnTest {
 
         var columnDesc = new IntColumn("test", StorageType.PLAIN);
 
-        try (var table = new SlopTable()) {
-            var column = columnDesc.create(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.create(table);
             column.put(42);
             column.put(43);
         }
-        try (var table = new SlopTable()) {
-            var column = columnDesc.open(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.open(table);
             assertEquals(42, column.get());
             assertEquals(43, column.get());
         }
@@ -76,14 +76,14 @@ class IntColumnTest {
         var columnDesc = new IntColumn("test", StorageType.PLAIN);
 
 
-        try (var table = new SlopTable()) {
-            var column = columnDesc.create(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.create(table);
             for (int i = 0; i < 64; i++) {
                 column.put(i);
             }
         }
-        try (var table = new SlopTable()) {
-            var column = columnDesc.open(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.open(table);
             int i = 0;
             while (column.hasRemaining()) {
                 assertEquals(i++, column.get());
@@ -103,13 +103,13 @@ class IntColumnTest {
         for (int i = 0; i < values.length; i++) {
             values[i] = i;
         }
-        try (var table = new SlopTable()) {
-            var column = columnDesc.create(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.create(table);
             column.put(values);
             column.put(values);
         }
-        try (var table = new SlopTable()) {
-            var column = columnDesc.open(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.open(table);
             for (int i = 0; i < 2; i++) {
                 for (int j = 0; j < values.length; j++) {
                     assertEquals(j, column.get());
@@ -130,13 +130,13 @@ class IntColumnTest {
         for (int i = 0; i < values.length; i++) {
             values[i] = i;
         }
-        try (var table = new SlopTable()) {
-            var column = columnDesc.create(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.create(table);
             column.put(values);
             column.put(values);
         }
-        try (var table = new SlopTable()) {
-            var column = columnDesc.open(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.open(table);
             column.get();
             column.get();
             column.skip(34);

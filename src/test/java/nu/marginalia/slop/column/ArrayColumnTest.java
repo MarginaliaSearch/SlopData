@@ -56,17 +56,17 @@ class ArrayColumnTest {
     void test() throws IOException {
         var arrayCol = new IntArrayColumn("test", ByteOrder.LITTLE_ENDIAN,  StorageType.PLAIN);
 
-        try (var table = new SlopTable()) {
+        try (var table = new SlopTable(tempDir)) {
 
-            var column = arrayCol.create(table, tempDir);
+            var column = arrayCol.create(table);
 
             column.put(new int[] { 11, 22, 33});
             column.put(new int[] { 2 });
             column.put(new int[] { 444 });
         }
-        try (var table = new SlopTable()) {
 
-            var column = arrayCol.open(table, tempDir);
+        try (var table = new SlopTable(tempDir)) {
+            var column = arrayCol.open(table);
 
             assertArrayEquals(new int[] { 11, 22, 33}, column.get());
             assertArrayEquals(new int[] { 2 }, column.get());

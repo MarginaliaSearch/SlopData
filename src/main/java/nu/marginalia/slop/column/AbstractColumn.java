@@ -44,22 +44,13 @@ public abstract class AbstractColumn<R extends ColumnReader, W extends ColumnWri
     public abstract W createUnregistered(Path path, int page) throws IOException;
 
     /** Open a column for reading, registering it to the table */
-    public R open(SlopTable table, URI uri) throws IOException {
-        return table.register(openUnregistered(uri, table.page));
-    }
-
-    /** Open a column for reading, registering it to the table.
-     * <p></p>
-     * This is a convenience method that provides symmetry with create,
-     * that also takes a Path.
-     */
-    public R open(SlopTable table, Path path) throws IOException {
-        return table.register(openUnregistered(path.toUri(), table.page));
+    public R open(SlopTable table) throws IOException {
+        return table.register(openUnregistered(table.uri, table.page));
     }
 
     /** Open a column for writing, registering it to the table */
-    public W create(SlopTable table, Path path) throws IOException {
-        return table.register(createUnregistered(path, table.page));
+    public W create(SlopTable table) throws IOException {
+        return table.register(createUnregistered(Path.of(table.uri), table.page));
     }
 
     public String toString() {

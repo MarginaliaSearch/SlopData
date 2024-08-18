@@ -83,8 +83,8 @@ class NetworkStorageReaderTest {
     void putByte() throws IOException {
         var col = new ByteColumn("test", StorageType.PLAIN);
 
-        try (var slop = new SlopTable()) {
-            var writer = col.create(slop, tempDir);
+        try (var slop = new SlopTable(tempDir)) {
+            var writer = col.create(slop);
             for (int i = 0; i < 127; i++) {
                 assertEquals(i, writer.position());
                 writer.put((byte) i);
@@ -105,8 +105,8 @@ class NetworkStorageReaderTest {
         });
 
         server.start();
-        try (var slop = new SlopTable()) {
-            var reader = col.open(slop, new URI("http://localhost:9999/foo/"));
+        try (var slop = new SlopTable(new URI("http://localhost:9999/foo/"))) {
+            var reader = col.open(slop);
             for (int i = 0; i < 127; i++) {
                 assertTrue(reader.hasRemaining());
                 assertEquals(i, reader.position());

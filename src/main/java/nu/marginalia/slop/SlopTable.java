@@ -5,6 +5,7 @@ import nu.marginalia.slop.column.ColumnReader;
 import nu.marginalia.slop.column.ColumnWriter;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -23,13 +24,23 @@ public class SlopTable implements AutoCloseable {
     private final Set<ColumnReader> readerList = new HashSet<>();
     private final Set<ColumnWriter> writerList = new HashSet<>();
 
+    public final URI uri;
     public final int page;
 
-    public SlopTable() {
-        page = 0;
+    public SlopTable(Path path) {
+        this(path.toUri(), 0);
     }
 
-    public SlopTable(int page) {
+    public SlopTable(URI uri) {
+        this(uri, 0);
+    }
+
+    public SlopTable(Path path, int page) {
+        this(path.toUri(), page);
+    }
+
+    public SlopTable(URI uri, int page) {
+        this.uri = uri;
         this.page = page;
     }
 

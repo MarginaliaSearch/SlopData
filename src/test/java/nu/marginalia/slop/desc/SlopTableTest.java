@@ -60,7 +60,7 @@ public class SlopTableTest {
 
     @Test
     public void testEmpty() throws IOException {
-        SlopTable slopTable = new SlopTable(0);
+        SlopTable slopTable = new SlopTable(tempDir);
         slopTable.close();
     }
 
@@ -69,18 +69,18 @@ public class SlopTableTest {
         var cd1 = new IntColumn("test1", StorageType.PLAIN);
         var cd2 = new IntColumn("test2", StorageType.PLAIN);
 
-        try (SlopTable writerTable = new SlopTable(0)) {
-            var column1 = cd1.create(writerTable, tempDir);
-            var column2 = cd2.create(writerTable, tempDir);
+        try (SlopTable writerTable = new SlopTable(tempDir)) {
+            var column1 = cd1.create(writerTable);
+            var column2 = cd2.create(writerTable);
 
             column1.put(42);
             column2.put(43);
         }
 
 
-        try (SlopTable readerTable = new SlopTable(0)) {
-            var column1 = cd1.open(readerTable, tempDir);
-            var column2 = cd2.open(readerTable, tempDir);
+        try (SlopTable readerTable = new SlopTable(tempDir)) {
+            var column1 = cd1.open(readerTable);
+            var column2 = cd2.open(readerTable);
 
             assertEquals(42, column1.get());
             assertEquals(43, column2.get());
@@ -94,9 +94,9 @@ public class SlopTableTest {
         var cd2 = new IntColumn("test2", StorageType.PLAIN);
 
         boolean sawException = false;
-        try (SlopTable writerTable = new SlopTable(0)) {
-            var column1 = cd1.create(writerTable, tempDir);
-            var column2 = cd2.create(writerTable, tempDir);
+        try (SlopTable writerTable = new SlopTable(tempDir)) {
+            var column1 = cd1.create(writerTable);
+            var column2 = cd2.create(writerTable);
 
             column1.put(42);
             column2.put(43);
@@ -130,22 +130,22 @@ public class SlopTableTest {
         var enumCol = new StringColumn("enum");
 
 
-        try (SlopTable writerTable = new SlopTable(0)) {
-            var byteColumn = byteCol.create(writerTable, tempDir);
-            var charColumn = charCol.create(writerTable, tempDir);
-            var intColumn = intCol.create(writerTable, tempDir);
-            var longColumn = longCol.create(writerTable, tempDir);
-            var floatColumn = floatCol.create(writerTable, tempDir);
-            var doubleColumn = doubleCol.create(writerTable, tempDir);
-            var byteArrayColumn = byteArrayCol.create(writerTable, tempDir);
+        try (SlopTable writerTable = new SlopTable(tempDir)) {
+            var byteColumn = byteCol.create(writerTable);
+            var charColumn = charCol.create(writerTable);
+            var intColumn = intCol.create(writerTable);
+            var longColumn = longCol.create(writerTable);
+            var floatColumn = floatCol.create(writerTable);
+            var doubleColumn = doubleCol.create(writerTable);
+            var byteArrayColumn = byteArrayCol.create(writerTable);
 
-            var intArrayColumn = intArrayCol.create(writerTable, tempDir);
-            var longArrayColumn = longArrayCol.create(writerTable, tempDir);
-            var cstringColumn = cstringCol.create(writerTable, tempDir);
-            var txtStringColumn = txtStringCol.create(writerTable, tempDir);
-            var arrayStringColumn = arrayStringCol.create(writerTable, tempDir);
-            var enumColumn = enumCol.create(writerTable, tempDir);
-            var varintColumn = varintCol.create(writerTable, tempDir);
+            var intArrayColumn = intArrayCol.create(writerTable);
+            var longArrayColumn = longArrayCol.create(writerTable);
+            var cstringColumn = cstringCol.create(writerTable);
+            var txtStringColumn = txtStringCol.create(writerTable);
+            var arrayStringColumn = arrayStringCol.create(writerTable);
+            var enumColumn = enumCol.create(writerTable);
+            var varintColumn = varintCol.create(writerTable);
 
             byteColumn.put((byte) 42);
             charColumn.put('a');
@@ -166,21 +166,21 @@ public class SlopTableTest {
             varintColumn.put(10000000);
         }
 
-        try (SlopTable readerTable = new SlopTable(0)) {
-            var byteColumn = byteCol.open(readerTable, tempDir);
-            var charColumn = charCol.open(readerTable, tempDir);
-            var intColumn = intCol.open(readerTable, tempDir);
-            var longColumn = longCol.open(readerTable, tempDir);
-            var floatColumn = floatCol.open(readerTable, tempDir);
-            var doubleColumn = doubleCol.open(readerTable, tempDir);
-            var byteArrayColumn = byteArrayCol.open(readerTable, tempDir);
-            var intArrayColumn = intArrayCol.open(readerTable, tempDir);
-            var longArrayColumn = longArrayCol.open(readerTable, tempDir);
-            var cstringColumn = cstringCol.open(readerTable, tempDir);
-            var txtStringColumn = txtStringCol.open(readerTable, tempDir);
-            var arrayStringColumn = arrayStringCol.open(readerTable, tempDir);
-            var enumColumn = enumCol.open(readerTable, tempDir);
-            var varintColumn = varintCol.open(readerTable, tempDir);
+        try (SlopTable readerTable = new SlopTable(tempDir, 0)) {
+            var byteColumn = byteCol.open(readerTable);
+            var charColumn = charCol.open(readerTable);
+            var intColumn = intCol.open(readerTable);
+            var longColumn = longCol.open(readerTable);
+            var floatColumn = floatCol.open(readerTable);
+            var doubleColumn = doubleCol.open(readerTable);
+            var byteArrayColumn = byteArrayCol.open(readerTable);
+            var intArrayColumn = intArrayCol.open(readerTable);
+            var longArrayColumn = longArrayCol.open(readerTable);
+            var cstringColumn = cstringCol.open(readerTable);
+            var txtStringColumn = txtStringCol.open(readerTable);
+            var arrayStringColumn = arrayStringCol.open(readerTable);
+            var enumColumn = enumCol.open(readerTable);
+            var varintColumn = varintCol.open(readerTable);
 
             assertEquals(42, byteColumn.get());
             assertEquals('a', charColumn.get());

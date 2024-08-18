@@ -58,14 +58,14 @@ class StringColumnTest {
     void testArrayStr() throws IOException {
         var columnDesc = new StringColumn("test", StorageType.PLAIN);
 
-        try (var table = new SlopTable(0)) {
-            var column = columnDesc.create(table, tempDir);
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.create(table);
 
             column.put("Lorem");
             column.put("Ipsum");
         }
-        try (var table = new SlopTable(0)) {
-            var column = columnDesc.open(table, tempDir);
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.open(table);
 
             assertEquals("Lorem", column.get());
             assertEquals("Ipsum", column.get());
@@ -77,13 +77,13 @@ class StringColumnTest {
     void testCStr() throws IOException {
         var columnDesc = new CStringColumn("test", StorageType.PLAIN);
 
-        try (var table = new SlopTable(0)) {
-            var column = columnDesc.create(table, tempDir);
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.create(table);
             column.put("Lorem");
             column.put("Ipsum");
         }
-        try (var table = new SlopTable(0)) {
-            var column = columnDesc.open(table, tempDir);
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.open(table);
             assertEquals("Lorem", column.get());
             assertEquals("Ipsum", column.get());
             assertFalse(column.hasRemaining());
@@ -94,13 +94,13 @@ class StringColumnTest {
     void testTxtStr() throws IOException {
         var columnDesc = new TxtStringColumn("test", StorageType.PLAIN);
 
-        try (var table = new SlopTable(0)) {
-            var column = columnDesc.create(table, tempDir);
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.create(table);
             column.put("Lorem");
             column.put("Ipsum");
         }
-        try (var table = new SlopTable(0)) {
-            var column = columnDesc.open(table, tempDir);
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.open(table);
             assertEquals("Lorem", column.get());
             assertEquals("Ipsum", column.get());
             assertFalse(column.hasRemaining());
