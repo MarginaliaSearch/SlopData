@@ -27,17 +27,10 @@ public class SlopTable implements AutoCloseable {
     public final URI uri;
     public final int page;
 
-    public SlopTable(Path path) {
-        this(path.toUri(), 0);
-    }
-
-    public SlopTable(URI uri) {
-        this(uri, 0);
-    }
-
-    public SlopTable(Path path, int page) {
-        this(path.toUri(), page);
-    }
+    public SlopTable(Path path) { this(path.toUri(), 0); }
+    public SlopTable(URI uri) { this(uri, 0); }
+    public SlopTable(Path path, int page) { this(path.toUri(), page); }
+    public SlopTable(SlopTable.Ref ref) { this(ref.uri, ref.page); }
 
     public SlopTable(URI uri, int page) {
         this.uri = uri;
@@ -53,14 +46,28 @@ public class SlopTable implements AutoCloseable {
         }
     }
 
-    /** Register a column reader with this table.  This is called from ColumnDesc. */
+    public static List<Ref> listPages(Path baseDirectory, AbstractColumn<?,?> referenceColumn) {
+        List<Ref> refs = new ArrayList<>();
+
+        for (int page = 0; Files.exists(baseDirectory.resolve(referenceColumn.fileName(page))); page++) {
+            refs.add(new Ref(baseDirectory, page));
+        }
+
+        return refs;
+    }
+
+    /** Register a column reader with this table.
+     * This is typically done implicitly through Column.open().
+     * */
     public <T extends ColumnReader> T register(T reader) {
         if (!readerList.add(reader))
             System.err.println("Double registration of " + reader);
         return reader;
     }
 
-    /** Register a column reader with this table.  This is called from ColumnDesc. */
+    /** Register a column reader with this table.
+     * This is typically done implicitly through Column.create().
+     * */
     public <T extends ColumnWriter> T register(T writer) {
         if (!writerList.add(writer))
             System.err.println("Double registration of " + writer);
@@ -110,4 +117,23 @@ public class SlopTable implements AutoCloseable {
         }
     }
 
+    /** A reference to a table.  This is used to pass around the information needed to create a table in one unit */
+    public record Ref(URI uri, int page) {
+        public Ref(Path path) {
+            this(path.toUri(), 0);
+        }
+
+        public Ref(URI uri) {
+            this(uri, 0);
+        }
+
+        public Ref(Path path, int page) {
+            this(path.toUri(), page);
+        }
+
+        public Ref(URI uri, int page) {
+            this.uri = uri;
+            this.page = page;
+        }
+    }
 }
