@@ -30,7 +30,7 @@ public class SlopTable implements AutoCloseable {
     public SlopTable(Path path) { this(path.toUri(), 0); }
     public SlopTable(URI uri) { this(uri, 0); }
     public SlopTable(Path path, int page) { this(path.toUri(), page); }
-    public SlopTable(SlopTable.Ref ref) { this(ref.uri, ref.page); }
+    public SlopTable(SlopTable.Ref<?> ref) { this(ref.uri, ref.page); }
 
     public SlopTable(URI uri, int page) {
         this.uri = uri;
@@ -46,11 +46,11 @@ public class SlopTable implements AutoCloseable {
         }
     }
 
-    public static List<Ref> listPages(Path baseDirectory, AbstractColumn<?,?> referenceColumn) {
-        List<Ref> refs = new ArrayList<>();
+    public static <T> List<Ref<T>> listPages(Path baseDirectory, AbstractColumn<?,?> referenceColumn) {
+        List<Ref<T>> refs = new ArrayList<>();
 
         for (int page = 0; Files.exists(baseDirectory.resolve(referenceColumn.fileName(page))); page++) {
-            refs.add(new Ref(baseDirectory, page));
+            refs.add(new Ref<>(baseDirectory, page));
         }
 
         return refs;
@@ -117,8 +117,12 @@ public class SlopTable implements AutoCloseable {
         }
     }
 
-    /** A reference to a table.  This is used to pass around the information needed to create a table in one unit */
-    public record Ref(URI uri, int page) {
+    /** A reference to a table.  This is used to pass around the information needed to create a table in one unit.
+     * <p></p>
+     * The T parameter exists to be able to indicate which flavor of table is referenced, providing some level of type
+     * safety.
+     * */
+    public record Ref<T>(URI uri, int page) {
         public Ref(Path path) {
             this(path.toUri(), 0);
         }
