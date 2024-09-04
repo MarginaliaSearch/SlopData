@@ -8,25 +8,32 @@ import nu.marginalia.slop.desc.StorageType;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 public class StringColumn extends AbstractObjectColumn<String, StringColumn.Reader, StringColumn.Writer> {
-    ByteArrayColumn backingColumn;
-
+    private final ByteArrayColumn backingColumn;
+    private final Charset charset;
     public StringColumn(String name) {
-        this(name, StorageType.PLAIN);
+        this(name, StandardCharsets.UTF_8, StorageType.PLAIN);
+    }
+    public StringColumn(String name, Charset charset) {
+        this(name, charset, StorageType.PLAIN);
     }
 
-    public StringColumn(String name, StorageType storageType) {
-        super(name, "s8[]+str", ByteOrder.nativeOrder(), ColumnFunction.DATA, storageType);
+    public StringColumn(String name, Charset charset, StorageType storageType) {
+        super(name, "s8[]+str+"+charset.displayName(), ByteOrder.nativeOrder(), ColumnFunction.DATA, storageType);
 
-        backingColumn = new ByteArrayColumn(name, function, storageType);
+        this.backingColumn = new ByteArrayColumn(name, function, storageType);
+        this.charset = charset;
     }
 
-    public StringColumn(String name, ColumnFunction function, StorageType storageType) {
-        super(name, "s8[]+str", ByteOrder.nativeOrder(), function, storageType);
+    public StringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType) {
+        super(name, "s8[]+str+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType);
 
-        backingColumn = new ByteArrayColumn(name, function, storageType);
+        this.backingColumn = new ByteArrayColumn(name, function, storageType);
+        this.charset = charset;
     }
 
     @Override
@@ -57,7 +64,7 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
                 value = "";
             }
 
-            backingColumn.put(value.getBytes());
+            backingColumn.put(value.getBytes(charset));
         }
 
         public long position() {
@@ -82,7 +89,7 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
         }
 
         public String get() throws IOException {
-            return new String(backingColumn.get());
+            return new String(backingColumn.get(), charset);
         }
 
         @Override

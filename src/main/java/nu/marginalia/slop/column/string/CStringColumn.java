@@ -10,20 +10,26 @@ import nu.marginalia.slop.storage.StorageWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 public class CStringColumn extends AbstractObjectColumn<String, CStringColumn.Reader, CStringColumn.Writer> {
 
     public CStringColumn(String name) {
-        this(name, ColumnFunction.DATA, StorageType.PLAIN);
+        this(name, StandardCharsets.UTF_8, ColumnFunction.DATA, StorageType.PLAIN);
     }
 
-    public CStringColumn(String name, StorageType storageType) {
-        this(name, ColumnFunction.DATA, storageType);
+    public CStringColumn(String name, Charset charset) {
+        this(name, charset, ColumnFunction.DATA, StorageType.PLAIN);
     }
 
-    public CStringColumn(String name, ColumnFunction function, StorageType storageType) {
-        super(name, "s8+cstr", ByteOrder.nativeOrder(), function, storageType);
+    public CStringColumn(String name, Charset charset, StorageType storageType) {
+        this(name, charset, ColumnFunction.DATA, storageType);
+    }
+
+    public CStringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType) {
+        super(name, "s8+cstr+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType);
     }
 
     @Override

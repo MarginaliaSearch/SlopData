@@ -10,20 +10,29 @@ import nu.marginalia.slop.storage.StorageWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 public class TxtStringColumn extends AbstractObjectColumn<String, TxtStringColumn.Reader, TxtStringColumn.Writer> {
 
+    final Charset charset;
+
     public TxtStringColumn(String name) {
-        this(name, ColumnFunction.DATA, StorageType.PLAIN);
+        this(name, StandardCharsets.UTF_8, ColumnFunction.DATA, StorageType.PLAIN);
+    }
+    public TxtStringColumn(Charset charset, String name) {
+        this(name, charset, ColumnFunction.DATA, StorageType.PLAIN);
     }
 
-    public TxtStringColumn(String name, StorageType storageType) {
-        this(name, ColumnFunction.DATA, storageType);
+    public TxtStringColumn(String name, Charset charset, StorageType storageType) {
+        this(name, charset, ColumnFunction.DATA, storageType);
     }
 
-    public TxtStringColumn(String name, ColumnFunction function, StorageType storageType) {
-        super(name, "s8[]+txt", ByteOrder.nativeOrder(), function, storageType);
+    public TxtStringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType) {
+        super(name, "s8[]+txt+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType);
+
+        this.charset = charset;
     }
 
     @Override

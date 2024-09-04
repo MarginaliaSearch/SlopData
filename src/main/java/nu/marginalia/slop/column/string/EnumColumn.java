@@ -8,6 +8,8 @@ import nu.marginalia.slop.desc.StorageType;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,13 +21,17 @@ public class EnumColumn extends AbstractObjectColumn<String, EnumColumn.Reader, 
     private final VarintColumn dataColumn;
 
     public EnumColumn(String name) {
-        this(name, StorageType.PLAIN);
+        this(name, StandardCharsets.UTF_8, StorageType.PLAIN);
     }
 
-    public EnumColumn(String name, StorageType storageType) {
-        super(name, "enum", ByteOrder.nativeOrder(), ColumnFunction.DATA, storageType);
+    public EnumColumn(String name, Charset charset) {
+        this(name, charset, StorageType.PLAIN);
+    }
 
-        dicionaryColumn = new StringColumn(name, ColumnFunction.DICT, StorageType.PLAIN);
+    public EnumColumn(String name, Charset charset, StorageType storageType) {
+        super(name, "enum+"+charset.displayName(), ByteOrder.nativeOrder(), ColumnFunction.DATA, storageType);
+
+        dicionaryColumn = new StringColumn(name, charset, ColumnFunction.DICT, StorageType.PLAIN);
         dataColumn = new VarintColumn(name, ColumnFunction.DATA, storageType);
     }
 

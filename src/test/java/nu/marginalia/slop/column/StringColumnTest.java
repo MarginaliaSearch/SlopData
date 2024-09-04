@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -56,7 +57,7 @@ class StringColumnTest {
 
     @Test
     void testArrayStr() throws IOException {
-        var columnDesc = new StringColumn("test", StorageType.PLAIN);
+        var columnDesc = new StringColumn("test", StandardCharsets.UTF_8, StorageType.PLAIN);
 
         try (var table = new SlopTable(tempDir, 0)) {
             var column = columnDesc.create(table);
@@ -75,7 +76,7 @@ class StringColumnTest {
 
     @Test
     void testCStr() throws IOException {
-        var columnDesc = new CStringColumn("test", StorageType.PLAIN);
+        var columnDesc = new CStringColumn("test", StandardCharsets.UTF_8, StorageType.PLAIN);
 
         try (var table = new SlopTable(tempDir, 0)) {
             var column = columnDesc.create(table);
@@ -92,7 +93,7 @@ class StringColumnTest {
 
     @Test
     void testTxtStr() throws IOException {
-        var columnDesc = new TxtStringColumn("test", StorageType.PLAIN);
+        var columnDesc = new TxtStringColumn("test", StandardCharsets.UTF_8, StorageType.PLAIN);
 
         try (var table = new SlopTable(tempDir, 0)) {
             var column = columnDesc.create(table);

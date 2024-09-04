@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -61,7 +62,7 @@ class EnumColumnTest {
 
     @Test
     void test() throws IOException {
-        var enumCol = new EnumColumn("test", StorageType.PLAIN);
+        var enumCol = new EnumColumn("test", StandardCharsets.UTF_8, StorageType.PLAIN);
 
         try (var table = new SlopTable(tempDir)) {
             var column = enumCol.create(table);
