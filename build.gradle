@@ -33,6 +33,7 @@ publishing {
             artifactId = 'slop'
             from components.java
         }
+
     }
 
     repositories {
@@ -45,6 +46,11 @@ publishing {
             url = "https://artifacts.marginalia.nu/snapshots"
         }
     }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 dependencies {
