@@ -109,6 +109,10 @@ public class LargeStringColumn extends AbstractObjectColumn<String, LargeStringC
             return backingColumn.getLarge().map(bytes -> new String(bytes, charset));
         }
 
+        public LargeItem<byte[]> getLargeBytes() throws IOException{
+            return backingColumn.getLarge();
+        }
+
         @Override
         public long position() throws IOException {
             return backingColumn.position();
