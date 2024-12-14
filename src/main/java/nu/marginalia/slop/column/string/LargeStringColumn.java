@@ -16,6 +16,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
+/** String column with per-record zstd compression.
+ * Useful when storing extremely large strings. */
 public class LargeStringColumn extends AbstractObjectColumn<String, LargeStringColumn.Reader, LargeStringColumn.Writer> {
     private final LargeByteArrayColumn backingColumn;
     private final Charset charset;

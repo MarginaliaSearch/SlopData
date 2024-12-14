@@ -2,6 +2,11 @@ package nu.marginalia.slop.storage;
 
 import java.io.IOException;
 
+/** Support class that enables conditional reads of large chunks of data,
+ * preventing buffer allocations and procesing of the value if it is not consumed.
+ * <p></p>
+ * A LargeItem *must* be closed to advance the corresponding reader's position.
+ * */
 public class LargeItem<T> implements AutoCloseable {
     private T value = null;
     private boolean realized = false;

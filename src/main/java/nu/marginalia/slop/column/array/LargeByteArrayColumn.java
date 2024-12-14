@@ -21,6 +21,7 @@ import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 
+/** ByteArrayColumn with per-record zstd compression */
 public class LargeByteArrayColumn extends AbstractObjectColumn<byte[], LargeByteArrayColumn.Reader, LargeByteArrayColumn.Writer> {
 
     private final VarintColumn lengthColumn;
