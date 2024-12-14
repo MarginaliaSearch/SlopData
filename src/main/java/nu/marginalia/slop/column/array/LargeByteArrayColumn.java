@@ -1,6 +1,11 @@
 package nu.marginalia.slop.column.array;
 
-import nu.marginalia.slop.column.*;
+import com.github.luben.zstd.ZstdInputStream;
+import com.github.luben.zstd.ZstdOutputStream;
+import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.AbstractObjectColumn;
+import nu.marginalia.slop.column.ObjectColumnReader;
+import nu.marginalia.slop.column.ObjectColumnWriter;
 import nu.marginalia.slop.column.dynamic.VarintColumn;
 import nu.marginalia.slop.desc.ColumnFunction;
 import nu.marginalia.slop.desc.StorageType;
@@ -9,25 +14,23 @@ import nu.marginalia.slop.storage.Storage;
 import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 
-public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColumn.Reader, ByteArrayColumn.Writer> {
+public class LargeByteArrayColumn extends AbstractObjectColumn<byte[], LargeByteArrayColumn.Reader, LargeByteArrayColumn.Writer> {
 
     private final VarintColumn lengthColumn;
 
-    public ByteArrayColumn(String name) {
-        this(name, StorageType.PLAIN);
+    public LargeByteArrayColumn(String name) {
+        this(name, ColumnFunction.DATA);
     }
 
-    public ByteArrayColumn(String name, StorageType storageType) {
-        this(name, ColumnFunction.DATA, storageType);
-    }
-
-    public ByteArrayColumn(String name, ColumnFunction function, StorageType storageType) {
-        super(name, "s8[]", ByteOrder.nativeOrder(), function, storageType);
+    public LargeByteArrayColumn(String name, ColumnFunction function) {
+        super(name, "s8[]+zstd", ByteOrder.nativeOrder(), function, StorageType.PLAIN);
 
         lengthColumn = new VarintColumn(name, function.lengthsTable(), StorageType.PLAIN);
     }
@@ -38,16 +41,16 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
     }
 
     @Override
-    public ByteArrayColumn.Reader openUnregistered(URI uri, int page) throws IOException {
-        return new ByteArrayColumn.Reader(
+    public LargeByteArrayColumn.Reader openUnregistered(URI uri, int page) throws IOException {
+        return new LargeByteArrayColumn.Reader(
                 Storage.reader(uri, this, page,true),
                 lengthColumn.openUnregistered(uri, page)
                 );
     }
 
     @Override
-    public ByteArrayColumn.Writer createUnregistered(Path path, int page) throws IOException {
-        return new ByteArrayColumn.Writer(
+    public LargeByteArrayColumn.Writer createUnregistered(Path path, int page) throws IOException {
+        return new LargeByteArrayColumn.Writer(
                 Storage.writer(path, this, page),
                 lengthColumn.createUnregistered(path, page)
         );
@@ -67,13 +70,20 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
 
         @Override
         public AbstractColumn<?, ?> columnDesc() {
-            return ByteArrayColumn.this;
+            return LargeByteArrayColumn.this;
         }
 
         public void put(byte[] value) throws IOException {
             position ++;
-            storage.putBytes(value);
-            lengthsWriter.put(value.length);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream(value.length/2);
+            try (var zos = new ZstdOutputStream(baos)) {
+                zos.write(value);
+            }
+
+            byte[] compressed = baos.toByteArray();
+            storage.putBytes(compressed);
+            lengthsWriter.put(compressed.length);
         }
 
         public long position() {
@@ -102,19 +112,28 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
 
         @Override
         public AbstractColumn<?, ?> columnDesc() {
-            return ByteArrayColumn.this;
+            return LargeByteArrayColumn.this;
         }
 
         public byte[] get() throws IOException {
             int length = lengthsReader.get();
             byte[] ret = new byte[length];
+
             storage.getBytes(ret);
-            return ret;
+
+            return decompress(ret);
         }
 
         public LargeItem<byte[]> getLarge() throws IOException {
             int length = lengthsReader.get();
-            return storage.getLarge(length);
+            return storage.getLarge(length).map(LargeByteArrayColumn.Reader::decompress);
+        }
+
+        private static byte[] decompress(byte[] raw) throws IOException {
+            ByteArrayInputStream bais = new ByteArrayInputStream(raw);
+            try (var zis = new ZstdInputStream(bais)) {
+                return zis.readAllBytes();
+            }
         }
 
         @Override

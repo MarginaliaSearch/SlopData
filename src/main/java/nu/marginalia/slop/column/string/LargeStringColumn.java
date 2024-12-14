@@ -1,7 +1,10 @@
 package nu.marginalia.slop.column.string;
 
-import nu.marginalia.slop.column.*;
-import nu.marginalia.slop.column.array.*;
+import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.AbstractObjectColumn;
+import nu.marginalia.slop.column.ObjectColumnReader;
+import nu.marginalia.slop.column.ObjectColumnWriter;
+import nu.marginalia.slop.column.array.LargeByteArrayColumn;
 import nu.marginalia.slop.desc.ColumnFunction;
 import nu.marginalia.slop.desc.StorageType;
 import nu.marginalia.slop.storage.LargeItem;
@@ -13,27 +16,25 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
-public class StringColumn extends AbstractObjectColumn<String, StringColumn.Reader, StringColumn.Writer> {
-    private final ByteArrayColumn backingColumn;
+public class LargeStringColumn extends AbstractObjectColumn<String, LargeStringColumn.Reader, LargeStringColumn.Writer> {
+    private final LargeByteArrayColumn backingColumn;
     private final Charset charset;
-    public StringColumn(String name) {
-        this(name, StandardCharsets.UTF_8, StorageType.PLAIN);
-    }
-    public StringColumn(String name, Charset charset) {
-        this(name, charset, StorageType.PLAIN);
+
+    public LargeStringColumn(String name) {
+        this(name, StandardCharsets.UTF_8);
     }
 
-    public StringColumn(String name, Charset charset, StorageType storageType) {
-        super(name, "s8[]+str+"+charset.displayName(), ByteOrder.nativeOrder(), ColumnFunction.DATA, storageType);
+    public LargeStringColumn(String name, Charset charset) {
+        super(name, "s8[]+str"+charset.displayName()+"+zstd", ByteOrder.nativeOrder(), ColumnFunction.DATA, StorageType.PLAIN);
 
-        this.backingColumn = new ByteArrayColumn(name, function, storageType);
+        this.backingColumn = new LargeByteArrayColumn(name, function);
         this.charset = charset;
     }
 
-    public StringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType) {
-        super(name, "s8[]+str+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType);
+    public LargeStringColumn(String name, Charset charset, ColumnFunction function) {
+        super(name, "s8[]+str+"+charset.displayName()+"+zstd", ByteOrder.nativeOrder(), function, StorageType.PLAIN);
 
-        this.backingColumn = new ByteArrayColumn(name, function, storageType);
+        this.backingColumn = new LargeByteArrayColumn(name, function);
         this.charset = charset;
     }
 
@@ -43,26 +44,26 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
     }
 
     @Override
-    public StringColumn.Reader openUnregistered(URI uri, int page) throws IOException {
-        return new StringColumn.Reader(backingColumn.openUnregistered(uri, page));
+    public LargeStringColumn.Reader openUnregistered(URI uri, int page) throws IOException {
+        return new LargeStringColumn.Reader(backingColumn.openUnregistered(uri, page));
     }
 
     @Override
-    public StringColumn.Writer createUnregistered(Path path, int page) throws IOException {
-        return new StringColumn.Writer(backingColumn.createUnregistered(path, page));
+    public LargeStringColumn.Writer createUnregistered(Path path, int page) throws IOException {
+        return new LargeStringColumn.Writer(backingColumn.createUnregistered(path, page));
     }
 
 
     public class Writer implements ObjectColumnWriter<String> {
-        private final ByteArrayColumn.Writer backingColumn;
+        private final LargeByteArrayColumn.Writer backingColumn;
 
-        Writer(ByteArrayColumn.Writer backingColumn) {
+        Writer(LargeByteArrayColumn.Writer backingColumn) {
             this.backingColumn = backingColumn;
         }
 
         @Override
         public AbstractColumn<?,?> columnDesc() {
-            return StringColumn.this;
+            return LargeStringColumn.this;
         }
 
         public void put(String value) throws IOException {
@@ -83,12 +84,11 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
     }
 
     public class Reader implements ObjectColumnReader<String> {
-        private final ByteArrayColumn.Reader backingColumn;
+        private final LargeByteArrayColumn.Reader backingColumn;
 
-        Reader(ByteArrayColumn.Reader backingColumn) throws IOException {
+        Reader(LargeByteArrayColumn.Reader backingColumn) throws IOException {
             this.backingColumn = backingColumn;
         }
-
         @Override
         public boolean isDirect() {
             return backingColumn.isDirect();
@@ -96,7 +96,7 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
 
         @Override
         public AbstractColumn<?, ?> columnDesc() {
-            return StringColumn.this;
+            return LargeStringColumn.this;
         }
 
         public String get() throws IOException {
