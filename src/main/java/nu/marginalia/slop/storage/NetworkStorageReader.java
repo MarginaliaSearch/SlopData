@@ -237,6 +237,11 @@ public class NetworkStorageReader implements StorageReader {
     }
 
     @Override
+    public boolean isDirect() {
+        return false;
+    }
+
+    @Override
     public void close() throws IOException {
         is.close();
     }

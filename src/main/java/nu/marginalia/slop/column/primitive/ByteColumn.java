@@ -38,6 +38,11 @@ public class ByteColumn extends AbstractColumn<ByteColumn.Reader, ByteColumn.Wri
         return new Writer(Storage.writer(path, this, page));
     }
 
+    @Override
+    public int alignmentSize() {
+        return 1;
+    }
+
     public class Writer implements ColumnWriter {
         private final StorageWriter storage;
         private long position = 0;
@@ -74,6 +79,11 @@ public class ByteColumn extends AbstractColumn<ByteColumn.Reader, ByteColumn.Wri
 
         public byte get() throws IOException {
             return storage.getByte();
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
         }
 
         @Override

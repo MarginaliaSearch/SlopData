@@ -209,6 +209,11 @@ public class SimpleStorageReader implements StorageReader {
     }
 
     @Override
+    public boolean isDirect() {
+        return false;
+    }
+
+    @Override
     public void close() throws IOException {
         channel.close();
     }

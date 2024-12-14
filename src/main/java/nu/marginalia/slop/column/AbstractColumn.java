@@ -29,6 +29,8 @@ public abstract class AbstractColumn<R extends ColumnReader, W extends ColumnWri
         this.typeMnemonic = typeMnemonic;
     }
 
+    public abstract int alignmentSize();
+
     public String fileName(int page) {
         return name + "." + page + "." +  function.nmnemonic + "." + typeMnemonic + "." + storageType.nmnemonic;
     }

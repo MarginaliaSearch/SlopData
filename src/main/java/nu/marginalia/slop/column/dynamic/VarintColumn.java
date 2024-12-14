@@ -29,6 +29,11 @@ public class VarintColumn extends AbstractColumn<VarintColumn.Reader, VarintColu
     }
 
     @Override
+    public int alignmentSize() {
+        return 1;
+    }
+
+    @Override
     public Reader openUnregistered(URI uri, int page) throws IOException {
         return new VarintColumn.Reader(Storage.reader(uri, this, page, true));
     }
@@ -149,6 +154,11 @@ public class VarintColumn extends AbstractColumn<VarintColumn.Reader, VarintColu
         @Override
         public AbstractColumn<?, ?> columnDesc() {
             return VarintColumn.this;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return reader.isDirect();
         }
 
         public int get() throws IOException {

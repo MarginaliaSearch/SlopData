@@ -32,6 +32,11 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
     }
 
     @Override
+    public int alignmentSize() {
+        return 1;
+    }
+
+    @Override
     public ByteArrayColumn.Reader openUnregistered(URI uri, int page) throws IOException {
         return new ByteArrayColumn.Reader(
                 Storage.reader(uri, this, page,true),
@@ -87,6 +92,11 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
         public Reader(StorageReader storage, VarintColumn.Reader lengthsReader) throws IOException {
             this.storage = storage;
             this.lengthsReader = lengthsReader;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
         }
 
         @Override

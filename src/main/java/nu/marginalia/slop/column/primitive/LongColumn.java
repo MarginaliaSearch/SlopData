@@ -37,6 +37,11 @@ public class LongColumn extends AbstractColumn<LongColumn.Reader, LongColumn.Wri
     }
 
     @Override
+    public int alignmentSize() {
+        return 8;
+    }
+
+    @Override
     public Reader openUnregistered(URI uri, int page) throws IOException {
         return new Reader(Storage.reader(uri, this, page, true));
     }
@@ -83,6 +88,11 @@ public class LongColumn extends AbstractColumn<LongColumn.Reader, LongColumn.Wri
         @Override
         public AbstractColumn<?,?> columnDesc() {
             return LongColumn.this;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
         }
 
         public long get() throws IOException {

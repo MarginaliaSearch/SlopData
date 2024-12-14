@@ -143,6 +143,11 @@ public class MmapStorageReader implements StorageReader {
     }
 
     @Override
+    public boolean isDirect() {
+        return true;
+    }
+
+    @Override
     public void close() throws IOException {
         arena.close();
     }

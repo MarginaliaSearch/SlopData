@@ -37,6 +37,11 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
     }
 
     @Override
+    public int alignmentSize() {
+        return 1;
+    }
+
+    @Override
     public StringColumn.Reader openUnregistered(URI uri, int page) throws IOException {
         return new StringColumn.Reader(backingColumn.openUnregistered(uri, page));
     }
@@ -81,6 +86,11 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
 
         Reader(ByteArrayColumn.Reader backingColumn) throws IOException {
             this.backingColumn = backingColumn;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return backingColumn.isDirect();
         }
 
         @Override

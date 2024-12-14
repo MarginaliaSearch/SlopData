@@ -45,6 +45,8 @@ public interface StorageReader extends AutoCloseable {
     long position() throws IOException;
     boolean hasRemaining() throws IOException;
 
+    boolean isDirect();
+
     @Override
     void close() throws IOException;
 }
