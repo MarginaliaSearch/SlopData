@@ -21,11 +21,11 @@ public class CompressingStorageReader implements StorageReader {
     private final InputStream is;
     private final ByteBuffer buffer;
 
-    public CompressingStorageReader(Path path, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
+    public CompressingStorageReader(InputStream stream, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
         is = switch (storageType) {
-            case GZIP -> new GZIPInputStream(Files.newInputStream(path, StandardOpenOption.READ));
-            case ZSTD -> new ZstdCompressorInputStream(Files.newInputStream(path, StandardOpenOption.READ));
-            default -> throw new UnsupportedEncodingException("Unsupported storage type: " + storageType);
+            case GZIP -> new GZIPInputStream(stream);
+            case ZSTD -> new ZstdCompressorInputStream(stream);
+            case PLAIN -> stream;
         };
 
         this.arrayBuffer = new byte[bufferSize];
@@ -37,6 +37,10 @@ public class CompressingStorageReader implements StorageReader {
         // read the first chunk, this is needed for InputStream otherwise we don't handle empty files
         // correctly
         refill();
+    }
+
+    public CompressingStorageReader(Path path, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
+        this(Files.newInputStream(path), storageType, order, bufferSize);
     }
 
     @Override

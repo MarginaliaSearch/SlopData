@@ -27,6 +27,17 @@ public class MmapStorageReader implements StorageReader {
         position = 0;
     }
 
+    public MmapStorageReader(Path path, long posStart, long size) throws IOException {
+        arena = Arena.ofConfined();
+
+        try (var channel = (FileChannel) Files.newByteChannel(path, StandardOpenOption.READ)) {
+            this.segment = channel.map(FileChannel.MapMode.READ_ONLY, posStart, size, arena);
+        }
+
+        position = 0;
+    }
+
+
     @Override
     public byte getByte() throws IOException {
         return segment.get(ValueLayout.JAVA_BYTE, position++);
