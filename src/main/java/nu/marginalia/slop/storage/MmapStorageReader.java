@@ -9,11 +9,15 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("preview") // for MemorySegment in jdk-21
 public class MmapStorageReader implements StorageReader {
     private final MemorySegment segment;
     private final Arena arena;
+
+    private final List<AutoCloseable> closableResources = new ArrayList<>();
 
     private long position = 0;
 
@@ -37,6 +41,11 @@ public class MmapStorageReader implements StorageReader {
         position = 0;
     }
 
+    /** Add a resource to be closed with this reader */
+    MmapStorageReader withCloseableResource(AutoCloseable resource) {
+        closableResources.add(resource);
+        return this;
+    }
 
     @Override
     public byte getByte() throws IOException {
@@ -161,5 +170,13 @@ public class MmapStorageReader implements StorageReader {
     @Override
     public void close() throws IOException {
         arena.close();
+
+        for (var resource : closableResources) {
+            try {
+                resource.close();
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }
     }
 }

@@ -46,7 +46,6 @@ public interface Storage {
                 }
             }
             else if (Files.isRegularFile(Path.of(uri)) && uri.getPath().endsWith(".slop.zip")) {
-                // We're technically leaking a file handle here, shouldn't be a problem in any realistic situation though
                 ZipFile zf = ZipFile.builder().setFile(path.toFile()).get();
                 ZipArchiveEntry entry = zf.getEntry(abstractColumn.fileName(page));
 
@@ -68,7 +67,8 @@ public interface Storage {
                         && byteOrder.equals(ByteOrder.LITTLE_ENDIAN)
                         && storageType.equals(StorageType.PLAIN))
                 {
-                    return new MmapStorageReader(path, start, size);
+                    return new MmapStorageReader(path, start, size)
+                            .withCloseableResource(zf);
                 }
                 else {
                     final int bufferSize = switch (abstractColumn.function) {
@@ -76,7 +76,8 @@ public interface Storage {
                         default -> 1024;
                     };
 
-                    return new CompressingStorageReader(zf.getInputStream(entry), storageType, byteOrder, bufferSize);
+                    return new CompressingStorageReader(zf.getInputStream(entry), storageType, byteOrder, bufferSize)
+                            .withCloseableResource(zf);
                 }
             }
             else {

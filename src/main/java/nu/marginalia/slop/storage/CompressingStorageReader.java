@@ -11,12 +11,16 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 public class CompressingStorageReader implements StorageReader {
     private final byte[] arrayBuffer;
 
     private long position = 0;
+
+    private final List<AutoCloseable> closableResources = new ArrayList<>();
 
     private final InputStream is;
     private final ByteBuffer buffer;
@@ -41,6 +45,12 @@ public class CompressingStorageReader implements StorageReader {
 
     public CompressingStorageReader(Path path, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
         this(Files.newInputStream(path), storageType, order, bufferSize);
+    }
+
+    /** Add a resource to be closed with this reader */
+    CompressingStorageReader withCloseableResource(AutoCloseable resource) {
+        closableResources.add(resource);
+        return this;
     }
 
     @Override
@@ -239,5 +249,13 @@ public class CompressingStorageReader implements StorageReader {
     @Override
     public void close() throws IOException {
         is.close();
+
+        for (var resource : closableResources) {
+            try {
+                resource.close();
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }
     }
 }
