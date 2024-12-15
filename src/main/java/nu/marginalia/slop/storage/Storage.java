@@ -62,8 +62,8 @@ public interface Storage {
                 long start = entry.getDataOffset();
                 long size = entry.getCompressedSize();
 
-                if ((start % abstractColumn.alignmentSize() == 0)
-                        && aligned
+                if (aligned
+                        && (start % abstractColumn.alignmentSize() == 0) // If the code is working correctly, the start should always be aligned, but we check just in case
                         && byteOrder.equals(ByteOrder.LITTLE_ENDIAN)
                         && storageType.equals(StorageType.PLAIN))
                 {

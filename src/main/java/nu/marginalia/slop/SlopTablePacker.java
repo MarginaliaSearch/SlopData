@@ -25,7 +25,9 @@ public class SlopTablePacker {
 
                 for (var file : allFiles) {
                     try (var is = new BufferedInputStream(Files.newInputStream(file))) {
-                        os.putArchiveEntry(os.createArchiveEntry(file, file.toFile().getName()));
+                        var archiveEntry = os.createArchiveEntry(file, file.toFile().getName());
+                        archiveEntry.setAlignment(8); // Align to 8 bytes to ensure we can always safely mmap the data
+                        os.putArchiveEntry(archiveEntry);
                         is.transferTo(os);
                         os.closeArchiveEntry();
                     }
