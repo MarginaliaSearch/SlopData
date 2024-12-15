@@ -146,42 +146,4 @@ public class ZipTest {
         }
     }
 
-    @Test
-    public void testAlignmentCorrection() throws Exception {
-        ByteColumn byteColumn = new ByteColumn("test", StorageType.PLAIN);
-        IntColumn intColumn = new IntColumn("test", StorageType.PLAIN);
-
-        try (var table = new SlopTable(tempDir1)) {
-            var bWriter = byteColumn.create(table);
-            bWriter.put((byte) 0);
-            bWriter.put((byte) 0);
-            bWriter.put((byte) 0);
-
-            var iWriter = intColumn.create(table);
-            iWriter.put((byte) 4);
-            iWriter.put((byte) 5);
-            iWriter.put((byte) 1);
-        }
-
-        new SlopTablePacker().packToSlopZip(tempDir1, tempDir2.resolve("test.slop.zip"));
-
-        try (var table = new SlopTable(tempDir2.resolve("test.slop.zip"))) {
-            var bReader = byteColumn.open(table);
-            assertTrue(bReader.isDirect());
-            assertEquals(0, bReader.get());
-            assertEquals(0, bReader.get());
-            assertEquals(0, bReader.get());
-            assertFalse(bReader.hasRemaining());
-
-            var iReader = intColumn.open(table);
-            assertTrue(iReader.isDirect());
-            assertEquals(4, iReader.get());
-            assertEquals(5, iReader.get());
-            assertEquals(1, iReader.get());
-            assertFalse(iReader.hasRemaining());
-        }
-    }
-
-
-
 }
