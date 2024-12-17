@@ -32,7 +32,7 @@ public class MmapStorageReader implements StorageReader {
     }
 
     public MmapStorageReader(Path path, long posStart, long size) throws IOException {
-        arena = Arena.ofConfined();
+        arena = Arena.ofShared();
 
         try (var channel = (FileChannel) Files.newByteChannel(path, StandardOpenOption.READ)) {
             this.segment = channel.map(FileChannel.MapMode.READ_ONLY, posStart, size, arena);
