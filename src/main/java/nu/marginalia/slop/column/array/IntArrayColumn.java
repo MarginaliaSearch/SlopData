@@ -38,6 +38,10 @@ public class IntArrayColumn extends AbstractObjectColumn<int[], IntArrayColumn.R
         lengthColumn = new VarintColumn(name, ColumnFunction.DATA_LEN, StorageType.PLAIN);
     }
 
+    @Override
+    public int alignmentSize() {
+        return 4;
+    }
 
     @Override
     public IntArrayColumn.Reader openUnregistered(URI uri, int page) throws IOException {
@@ -91,6 +95,11 @@ public class IntArrayColumn extends AbstractObjectColumn<int[], IntArrayColumn.R
         Reader(StorageReader storage, VarintColumn.Reader lengthsReader) {
             this.storage = storage;
             this.lengthsReader = lengthsReader;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
         }
 
         @Override

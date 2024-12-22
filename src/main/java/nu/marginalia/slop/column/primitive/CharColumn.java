@@ -46,7 +46,10 @@ public class CharColumn extends AbstractColumn<CharColumn.Reader, CharColumn.Wri
         return new Writer(Storage.writer(path, this, page));
     }
 
-
+    @Override
+    public int alignmentSize() {
+        return 2;
+    }
 
     public class Writer implements ColumnWriter {
         private final StorageWriter storage;
@@ -84,6 +87,11 @@ public class CharColumn extends AbstractColumn<CharColumn.Reader, CharColumn.Wri
 
         public char get() throws IOException {
             return storage.getChar();
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
         }
 
         @Override

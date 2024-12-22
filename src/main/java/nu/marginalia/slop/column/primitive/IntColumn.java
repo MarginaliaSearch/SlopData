@@ -37,6 +37,11 @@ public class IntColumn extends AbstractColumn<IntColumn.Reader, IntColumn.Writer
     }
 
     @Override
+    public int alignmentSize() {
+        return 4;
+    }
+
+    @Override
     public Reader openUnregistered(URI uri, int page) throws IOException {
         return new Reader(Storage.reader(uri, this, page, true));
     }
@@ -85,6 +90,11 @@ public class IntColumn extends AbstractColumn<IntColumn.Reader, IntColumn.Writer
 
         public Reader(StorageReader storage) throws IOException {
             this.storage = storage;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
         }
 
         @Override

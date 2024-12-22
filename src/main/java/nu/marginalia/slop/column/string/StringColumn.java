@@ -4,6 +4,7 @@ import nu.marginalia.slop.column.*;
 import nu.marginalia.slop.column.array.*;
 import nu.marginalia.slop.desc.ColumnFunction;
 import nu.marginalia.slop.desc.StorageType;
+import nu.marginalia.slop.storage.LargeItem;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,6 +35,11 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
 
         this.backingColumn = new ByteArrayColumn(name, function, storageType);
         this.charset = charset;
+    }
+
+    @Override
+    public int alignmentSize() {
+        return 1;
     }
 
     @Override
@@ -84,12 +90,27 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
         }
 
         @Override
+        public boolean isDirect() {
+            return backingColumn.isDirect();
+        }
+
+        @Override
         public AbstractColumn<?, ?> columnDesc() {
             return StringColumn.this;
         }
 
         public String get() throws IOException {
             return new String(backingColumn.get(), charset);
+        }
+
+        /** For conditional reads of the corresponding data.  If the data is memory mapped,
+         * skipping this row by not invoking LargeItem.get() will omit
+         * String and byte[]-allocations.
+         * <p></p>
+         * The returned object <b>must</b> be closed.
+         * */
+        public LargeItem<String> getLarge() throws IOException{
+            return backingColumn.getLarge().map(bytes -> new String(bytes, charset));
         }
 
         @Override

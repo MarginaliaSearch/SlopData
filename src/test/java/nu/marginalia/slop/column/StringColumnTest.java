@@ -5,6 +5,7 @@ import nu.marginalia.slop.column.string.CStringColumn;
 import nu.marginalia.slop.column.string.StringColumn;
 import nu.marginalia.slop.column.string.TxtStringColumn;
 import nu.marginalia.slop.desc.*;
+import nu.marginalia.slop.storage.LargeItem;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,6 +75,27 @@ class StringColumnTest {
         }
     }
 
+    @Test
+    void testArrayStr_LargeItemRead() throws IOException {
+        var columnDesc = new StringColumn("test", StandardCharsets.UTF_8, StorageType.PLAIN);
+
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.create(table);
+
+            column.put("Lorem");
+            column.put("Ipsum");
+        }
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.open(table);
+
+            try (LargeItem<String> item = column.getLarge()) {}
+            try (LargeItem<String> item = column.getLarge()) {
+                assertEquals("Ipsum", item.get());
+            }
+
+            assertFalse(column.hasRemaining());
+        }
+    }
     @Test
     void testCStr() throws IOException {
         var columnDesc = new CStringColumn("test", StandardCharsets.UTF_8, StorageType.PLAIN);

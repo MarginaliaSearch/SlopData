@@ -6,6 +6,7 @@ public interface ColumnReader {
 
     AbstractColumn<?, ?> columnDesc();
 
+    boolean isDirect();
     long position() throws IOException;
     void skip(long positions) throws IOException;
 

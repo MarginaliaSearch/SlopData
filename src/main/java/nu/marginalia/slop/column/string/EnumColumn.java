@@ -35,6 +35,13 @@ public class EnumColumn extends AbstractObjectColumn<String, EnumColumn.Reader, 
         dataColumn = new VarintColumn(name, ColumnFunction.DATA, storageType);
     }
 
+
+    @Override
+    public int alignmentSize() {
+        return 1;
+    }
+
+
     @Override
     public Reader openUnregistered(URI uri, int page) throws IOException {
         return new EnumColumn.Reader(
@@ -102,6 +109,11 @@ public class EnumColumn extends AbstractObjectColumn<String, EnumColumn.Reader, 
             }
 
             dicionaryColumn.close();
+        }
+
+        @Override
+        public boolean isDirect() {
+            return dataColumn.isDirect();
         }
 
         @Override

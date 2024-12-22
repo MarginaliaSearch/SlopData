@@ -33,6 +33,11 @@ public class ShortColumn extends AbstractColumn<ShortColumn.Reader, ShortColumn.
     }
 
     @Override
+    public int alignmentSize() {
+        return 2;
+    }
+
+    @Override
     public Reader openUnregistered(URI uri, int page) throws IOException {
         return new Reader(Storage.reader(uri, this, page, true));
     }
@@ -75,6 +80,11 @@ public class ShortColumn extends AbstractColumn<ShortColumn.Reader, ShortColumn.
 
         public Reader(StorageReader storage) throws IOException {
             this.storage = storage;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
         }
 
         public short get() throws IOException {

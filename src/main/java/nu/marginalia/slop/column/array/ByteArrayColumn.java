@@ -4,6 +4,7 @@ import nu.marginalia.slop.column.*;
 import nu.marginalia.slop.column.dynamic.VarintColumn;
 import nu.marginalia.slop.desc.ColumnFunction;
 import nu.marginalia.slop.desc.StorageType;
+import nu.marginalia.slop.storage.LargeItem;
 import nu.marginalia.slop.storage.Storage;
 import nu.marginalia.slop.storage.StorageReader;
 import nu.marginalia.slop.storage.StorageWriter;
@@ -29,6 +30,11 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
         super(name, "s8[]", ByteOrder.nativeOrder(), function, storageType);
 
         lengthColumn = new VarintColumn(name, function.lengthsTable(), StorageType.PLAIN);
+    }
+
+    @Override
+    public int alignmentSize() {
+        return 1;
     }
 
     @Override
@@ -90,6 +96,11 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
         }
 
         @Override
+        public boolean isDirect() {
+            return storage.isDirect();
+        }
+
+        @Override
         public AbstractColumn<?, ?> columnDesc() {
             return ByteArrayColumn.this;
         }
@@ -99,6 +110,17 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
             byte[] ret = new byte[length];
             storage.getBytes(ret);
             return ret;
+        }
+
+        /** For conditional reads of the corresponding data.  If the data is memory mapped,
+         * skipping this row by not invoking LargeItem.get() will omit allocating the corresponding
+         * byte[] buffer to hold the return value.
+         * <p></p>
+         * The returned object <b>must</b> be closed.
+         * */
+        public LargeItem<byte[]> getLarge() throws IOException {
+            int length = lengthsReader.get();
+            return storage.getLarge(length);
         }
 
         @Override

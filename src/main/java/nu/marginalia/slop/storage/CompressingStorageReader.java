@@ -11,6 +11,8 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 public class CompressingStorageReader implements StorageReader {
@@ -18,14 +20,16 @@ public class CompressingStorageReader implements StorageReader {
 
     private long position = 0;
 
+    private final List<AutoCloseable> closableResources = new ArrayList<>();
+
     private final InputStream is;
     private final ByteBuffer buffer;
 
-    public CompressingStorageReader(Path path, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
+    public CompressingStorageReader(InputStream stream, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
         is = switch (storageType) {
-            case GZIP -> new GZIPInputStream(Files.newInputStream(path, StandardOpenOption.READ));
-            case ZSTD -> new ZstdCompressorInputStream(Files.newInputStream(path, StandardOpenOption.READ));
-            default -> throw new UnsupportedEncodingException("Unsupported storage type: " + storageType);
+            case GZIP -> new GZIPInputStream(stream);
+            case ZSTD -> new ZstdCompressorInputStream(stream);
+            case PLAIN -> stream;
         };
 
         this.arrayBuffer = new byte[bufferSize];
@@ -37,6 +41,16 @@ public class CompressingStorageReader implements StorageReader {
         // read the first chunk, this is needed for InputStream otherwise we don't handle empty files
         // correctly
         refill();
+    }
+
+    public CompressingStorageReader(Path path, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
+        this(Files.newInputStream(path), storageType, order, bufferSize);
+    }
+
+    /** Add a resource to be closed with this reader */
+    CompressingStorageReader withCloseableResource(AutoCloseable resource) {
+        closableResources.add(resource);
+        return this;
     }
 
     @Override
@@ -228,7 +242,20 @@ public class CompressingStorageReader implements StorageReader {
     }
 
     @Override
+    public boolean isDirect() {
+        return false;
+    }
+
+    @Override
     public void close() throws IOException {
         is.close();
+
+        for (var resource : closableResources) {
+            try {
+                resource.close();
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }
     }
 }

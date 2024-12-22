@@ -30,6 +30,12 @@ public class ObjectArrayColumn<T> extends AbstractObjectColumn<List<T>, ObjectAr
         this.wrappingColumn = wrappingColumn;
     }
 
+    /** The column reader guarantees it will not make reads with an alignment larger than the returned value.
+     * */
+    @Override
+    public int alignmentSize() {
+        return wrappingColumn.alignmentSize();
+    }
 
     @Override
     public ObjectArrayColumn<T>.Reader openUnregistered(URI uri, int page) throws IOException {
@@ -86,6 +92,11 @@ public class ObjectArrayColumn<T> extends AbstractObjectColumn<List<T>, ObjectAr
         Reader(ObjectColumnReader<T> dataReader, VarintColumn.Reader groupsReader) {
             this.dataReader = dataReader;
             this.groupsReader = groupsReader;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return dataReader.isDirect() && groupsReader.isDirect();
         }
 
         @Override

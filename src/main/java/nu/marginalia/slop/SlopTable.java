@@ -18,6 +18,10 @@ import java.util.*;
  * It is often a good idea to let the reader or writer class for a particular
  * table inherit from SlopTable, so that the table is automatically closed when
  * the reader or writer is closed.
+ * <p></p>
+ * The SlopTable will automatically detect the input from the path, and beyond being
+ * able to open a directory, transparently unpacks e.g. ".slop.zip" files, streams network
+ * resources, etc.
  */
 
 public class SlopTable implements AutoCloseable {

@@ -49,6 +49,10 @@ public class LongArrayColumn extends AbstractObjectColumn<long[], LongArrayColum
                 );
     }
 
+    @Override
+    public int alignmentSize() {
+        return 8;
+    }
 
     public class Writer implements ObjectColumnWriter<long[]> {
         private final StorageWriter storage;
@@ -86,6 +90,11 @@ public class LongArrayColumn extends AbstractObjectColumn<long[], LongArrayColum
         Reader(StorageReader storage, VarintColumn.Reader lengthsReader) {
             this.storage = storage;
             this.lengthsReader = lengthsReader;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
         }
 
         @Override

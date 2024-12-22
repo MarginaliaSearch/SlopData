@@ -2,10 +2,13 @@ package nu.marginalia.slop.storage;
 
 import nu.marginalia.slop.column.AbstractColumn;
 import nu.marginalia.slop.desc.StorageType;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public interface Storage {
@@ -23,21 +26,62 @@ public interface Storage {
 
         if (uri.getScheme().equals("file")) {
             Path path = Path.of(uri);
-            Path filePath = path.resolve(abstractColumn.fileName(page));
 
-            if (aligned && byteOrder.equals(ByteOrder.LITTLE_ENDIAN) && storageType.equals(StorageType.PLAIN)) {
-                // mmap is only supported for little-endian plain storage, but it's generally worth it in this case
-                return new MmapStorageReader(filePath);
-            } else {
-                final int bufferSize = switch (abstractColumn.function) {
-                    case DATA -> 4096;
-                    default -> 1024;
-                };
+            if (Files.isDirectory(path)) {
+                Path filePath = path.resolve(abstractColumn.fileName(page));
 
-                return switch (storageType) {
-                    case PLAIN -> new SimpleStorageReader(filePath, byteOrder, bufferSize);
-                    case GZIP, ZSTD -> new CompressingStorageReader(filePath, storageType, byteOrder, bufferSize);
-                };
+                if (aligned && byteOrder.equals(ByteOrder.LITTLE_ENDIAN) && storageType.equals(StorageType.PLAIN)) {
+                    // mmap is only supported for little-endian plain storage, but it's generally worth it in this case
+                    return new MmapStorageReader(filePath);
+                } else {
+                    final int bufferSize = switch (abstractColumn.function) {
+                        case DATA -> 4096;
+                        default -> 1024;
+                    };
+
+                    return switch (storageType) {
+                        case PLAIN -> new SimpleStorageReader(filePath, byteOrder, bufferSize);
+                        case GZIP, ZSTD -> new CompressingStorageReader(filePath, storageType, byteOrder, bufferSize);
+                    };
+                }
+            }
+            else if (Files.isRegularFile(Path.of(uri)) && uri.getPath().endsWith(".slop.zip")) {
+                ZipFile zf = ZipFile.builder().setFile(path.toFile()).get();
+                ZipArchiveEntry entry = zf.getEntry(abstractColumn.fileName(page));
+
+                if (entry == null) {
+                    throw new NullPointerException("Missing zip file entry " + abstractColumn.fileName(page));
+                }
+
+                if (entry.getMethod() != ZipArchiveEntry.STORED) {
+                    throw new IllegalArgumentException("Illegal compression schema for zip file entry in " + uri + " -- must be STORED");
+                } else if (!entry.isStreamContiguous()) {
+                    throw new IllegalArgumentException("Illegal data layout for zip file entry in " + uri + " -- must be contiguous");
+                }
+
+                long start = entry.getDataOffset();
+                long size = entry.getCompressedSize();
+
+                if (aligned
+                        && (start % abstractColumn.alignmentSize() == 0) // If the code is working correctly, the start should always be aligned, but we check just in case
+                        && byteOrder.equals(ByteOrder.LITTLE_ENDIAN)
+                        && storageType.equals(StorageType.PLAIN))
+                {
+                    return new MmapStorageReader(path, start, size)
+                            .withCloseableResource(zf);
+                }
+                else {
+                    final int bufferSize = switch (abstractColumn.function) {
+                        case DATA -> 4096;
+                        default -> 1024;
+                    };
+
+                    return new CompressingStorageReader(zf.getInputStream(entry), storageType, byteOrder, bufferSize)
+                            .withCloseableResource(zf);
+                }
+            }
+            else {
+                throw new IllegalArgumentException("Unknown schema " + uri);
             }
         }
         else if (uri.getScheme().equals("http") || uri.getScheme().equals("https")) {
@@ -47,7 +91,7 @@ public interface Storage {
             return new NetworkStorageReader(url, storageType, byteOrder, 65536);
         }
         else {
-            throw new IllegalArgumentException("Unsupported URI scheme: " + uri.getScheme());
+            throw new IllegalArgumentException("Unsupported URI scheme: " + uri);
         }
     }
 

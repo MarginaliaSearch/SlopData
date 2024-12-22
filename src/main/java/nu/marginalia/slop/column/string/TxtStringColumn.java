@@ -36,6 +36,11 @@ public class TxtStringColumn extends AbstractObjectColumn<String, TxtStringColum
     }
 
     @Override
+    public int alignmentSize() {
+        return 1;
+    }
+
+    @Override
     public Reader openUnregistered(URI uri, int page) throws IOException {
         return new Reader(Storage.reader(uri, this, page, true));
     }
@@ -90,6 +95,11 @@ public class TxtStringColumn extends AbstractObjectColumn<String, TxtStringColum
         @Override
         public AbstractColumn<?,?> columnDesc() {
             return TxtStringColumn.this;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storageReader.isDirect();
         }
 
         public String get() throws IOException {

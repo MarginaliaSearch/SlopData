@@ -9,22 +9,42 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("preview") // for MemorySegment in jdk-21
 public class MmapStorageReader implements StorageReader {
     private final MemorySegment segment;
     private final Arena arena;
 
+    private final List<AutoCloseable> closableResources = new ArrayList<>();
+
     private long position = 0;
 
     public MmapStorageReader(Path path) throws IOException {
-        arena = Arena.ofConfined();
+        arena = Arena.ofShared();
 
         try (var channel = (FileChannel) Files.newByteChannel(path, StandardOpenOption.READ)) {
             this.segment = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size(), arena);
         }
 
         position = 0;
+    }
+
+    public MmapStorageReader(Path path, long posStart, long size) throws IOException {
+        arena = Arena.ofShared();
+
+        try (var channel = (FileChannel) Files.newByteChannel(path, StandardOpenOption.READ)) {
+            this.segment = channel.map(FileChannel.MapMode.READ_ONLY, posStart, size, arena);
+        }
+
+        position = 0;
+    }
+
+    /** Add a resource to be closed with this reader */
+    MmapStorageReader withCloseableResource(AutoCloseable resource) {
+        closableResources.add(resource);
+        return this;
     }
 
     @Override
@@ -143,7 +163,20 @@ public class MmapStorageReader implements StorageReader {
     }
 
     @Override
+    public boolean isDirect() {
+        return true;
+    }
+
+    @Override
     public void close() throws IOException {
         arena.close();
+
+        for (var resource : closableResources) {
+            try {
+                resource.close();
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }
     }
 }

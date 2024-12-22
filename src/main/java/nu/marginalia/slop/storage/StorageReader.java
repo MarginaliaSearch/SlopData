@@ -16,6 +16,17 @@ public interface StorageReader extends AutoCloseable {
     void getBytes(byte[] bytes, int offset, int length) throws IOException;
     void getBytes(ByteBuffer buffer) throws IOException;
 
+    default LargeItem<byte[]> getLarge(int size) {
+        return new LargeItem<>(
+                () -> {
+                    byte[] data = new byte[size];
+                    getBytes(data);
+                    return data;
+                },
+                () -> skip(size, 1)
+        );
+    }
+
     void getInts(int[] ints) throws IOException;
     void getLongs(long[] longs) throws IOException;
 
@@ -44,6 +55,8 @@ public interface StorageReader extends AutoCloseable {
     void seek(long position, int stepSize) throws IOException;
     long position() throws IOException;
     boolean hasRemaining() throws IOException;
+
+    boolean isDirect();
 
     @Override
     void close() throws IOException;

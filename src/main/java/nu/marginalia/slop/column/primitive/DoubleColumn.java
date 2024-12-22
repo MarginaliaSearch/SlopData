@@ -46,6 +46,10 @@ public class DoubleColumn extends AbstractColumn<DoubleColumn.Reader, DoubleColu
         return new Writer(Storage.writer(path, this, page));
     }
 
+    @Override
+    public int alignmentSize() {
+        return 8;
+    }
 
     public class Writer implements ColumnWriter {
         private final StorageWriter storage;
@@ -79,6 +83,11 @@ public class DoubleColumn extends AbstractColumn<DoubleColumn.Reader, DoubleColu
 
         public Reader(StorageReader storage) throws IOException {
             this.storage = storage;
+        }
+
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
         }
 
         @Override

@@ -36,6 +36,11 @@ public class CustomBinaryColumn extends AbstractColumn<CustomBinaryColumn.Reader
     }
 
     @Override
+    public int alignmentSize() {
+        return 1;
+    }
+
+    @Override
     public Reader openUnregistered(URI uri, int page) throws IOException {
         return new CustomBinaryColumn.Reader(
                 Storage.reader(uri, this, page, true),
@@ -103,6 +108,10 @@ public class CustomBinaryColumn extends AbstractColumn<CustomBinaryColumn.Reader
             this.indexReader = indexReader;
         }
 
+        @Override
+        public boolean isDirect() {
+            return storage.isDirect();
+        }
 
         @Override
         public AbstractColumn<?, ?> columnDesc() {
