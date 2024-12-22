@@ -103,6 +103,12 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
             return new String(backingColumn.get(), charset);
         }
 
+        /** For conditional reads of the corresponding data.  If the data is memory mapped,
+         * skipping this row by not invoking LargeItem.get() will omit
+         * String and byte[]-allocations.
+         * <p></p>
+         * The returned object <b>must</b> be closed.
+         * */
         public LargeItem<String> getLarge() throws IOException{
             return backingColumn.getLarge().map(bytes -> new String(bytes, charset));
         }

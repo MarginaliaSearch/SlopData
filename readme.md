@@ -193,6 +193,53 @@ TBW
 
 TBW
 
+## Zip Storage
+
+Sometimes it's impractical to keep the data unpacked in a directory,
+in this scenario Slop offers the ability to pack the data into an uncompressed 
+and carefully aligned Zip file in such a way it can still be accessed with 
+zero overhead using memory mapping.
+
+To this end, an utility class "SlopTablePacker" is available.
+
+```java
+Path pathToDir = Path.of("/tmp/foo");
+Path pathToDir = Path.of("/tmp/foo.slop.zip");
+
+ByteColumn byteColumn = new ByteColumn("example", StorageType.PLAIN);
+
+try (var table = new SlopTable(pathToDir)) {
+    var writer = byteColumn.create(table);
+    writer.put(...);
+    writer.put(...);
+    writer.put(...);
+}
+
+SlopTablePacker.packToSlopZip(pathToDir, pathToSlopZip);
+
+try (var table = new SlopTable(pathToSlopZip)) {
+    var reader = byteColumn.open(table);
+    reader.get();
+    reader.get(); 
+    reader.get(); 
+}
+```
+
+## Network Streaming
+
+Slop can read data over network requests, though not when the data 
+is zipped.  
+
+If a Slop table is available at "https://example.com/slop/", it can
+be opened by just providing this URI, e.g.
+
+```java
+try (var table = new SlopTable(new URI("https://example.com/slop/"))) {
+    // set up columns and read here
+}
+```
+
+
 ## SQL support
 
 If you feel like Slop could benefit from SQL support, you're almost certainly looking at the wrong tool for the job.

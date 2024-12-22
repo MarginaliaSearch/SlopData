@@ -112,6 +112,12 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
             return ret;
         }
 
+        /** For conditional reads of the corresponding data.  If the data is memory mapped,
+         * skipping this row by not invoking LargeItem.get() will omit allocating the corresponding
+         * byte[] buffer to hold the return value.
+         * <p></p>
+         * The returned object <b>must</b> be closed.
+         * */
         public LargeItem<byte[]> getLarge() throws IOException {
             int length = lengthsReader.get();
             return storage.getLarge(length);

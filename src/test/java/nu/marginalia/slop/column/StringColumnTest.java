@@ -2,7 +2,6 @@ package nu.marginalia.slop.column;
 
 import nu.marginalia.slop.SlopTable;
 import nu.marginalia.slop.column.string.CStringColumn;
-import nu.marginalia.slop.column.string.LargeStringColumn;
 import nu.marginalia.slop.column.string.StringColumn;
 import nu.marginalia.slop.column.string.TxtStringColumn;
 import nu.marginalia.slop.desc.*;
@@ -75,54 +74,6 @@ class StringColumnTest {
             assertFalse(column.hasRemaining());
         }
     }
-
-
-    @Test
-    void testLargeStr() throws IOException {
-        var columnDesc = new LargeStringColumn("test", StandardCharsets.UTF_8);
-
-        try (var table = new SlopTable(tempDir, 0)) {
-            var column = columnDesc.create(table);
-
-            column.put("Lorem");
-            column.put("Ipsum");
-        }
-        try (var table = new SlopTable(tempDir, 0)) {
-            var column = columnDesc.open(table);
-
-            assertEquals("Lorem", column.get());
-            assertEquals("Ipsum", column.get());
-            assertFalse(column.hasRemaining());
-        }
-    }
-
-
-    @Test
-    void testLargeStr_LargeItemRead() throws IOException {
-        var columnDesc = new LargeStringColumn("test", StandardCharsets.UTF_8);
-
-        try (var table = new SlopTable(tempDir, 0)) {
-            var column = columnDesc.create(table);
-
-            column.put("Lorem");
-            column.put("Ipsum");
-            column.put("Dolor");
-        }
-        try (var table = new SlopTable(tempDir, 0)) {
-            var column = columnDesc.open(table);
-
-            try (LargeItem<String> item = column.getLarge()) {}
-            try (LargeItem<String> item = column.getLarge()) {
-                assertEquals("Ipsum", item.get());
-            }
-            try (LargeItem<String> item = column.getLarge()) {
-                assertEquals("Dolor", item.get());
-            }
-
-            assertFalse(column.hasRemaining());
-        }
-    }
-
 
     @Test
     void testArrayStr_LargeItemRead() throws IOException {

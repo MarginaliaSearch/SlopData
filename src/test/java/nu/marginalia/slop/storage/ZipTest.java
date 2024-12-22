@@ -3,7 +3,6 @@ package nu.marginalia.slop.storage;
 import nu.marginalia.slop.SlopTable;
 import nu.marginalia.slop.SlopTablePacker;
 import nu.marginalia.slop.column.primitive.ByteColumn;
-import nu.marginalia.slop.column.primitive.IntColumn;
 import nu.marginalia.slop.desc.StorageType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +70,7 @@ public class ZipTest {
             writer.put((byte) 1);
         }
 
-        new SlopTablePacker().packToSlopZip(tempDir1, tempDir2.resolve("test.slop.zip"));
+        SlopTablePacker.packToSlopZip(tempDir1, tempDir2.resolve("test.slop.zip"));
 
         try (var table = new SlopTable(tempDir2.resolve("test.slop.zip"))) {
             var reader = byteColumn.open(table);
@@ -96,7 +95,7 @@ public class ZipTest {
             writer.put((byte) 1);
         }
 
-        new SlopTablePacker().packToSlopZip(tempDir1, tempDir2.resolve("test.slop.zip"));
+        SlopTablePacker.packToSlopZip(tempDir1, tempDir2.resolve("test.slop.zip"));
 
         try (var table = new SlopTable(tempDir2.resolve("test.slop.zip"))) {
             var reader = byteColumn.open(table);
