@@ -183,15 +183,76 @@ TBW
 
 ## Column Types
 
-TBW
+### Integer
+
+Type | Explanation
+---|---
+ByteColumn | 8 bit integer
+ShortColumn | 16 bit integer
+IntColumn | 32 bit integer
+LongColumn | 64 bit integer
+
+### Integer
+
+Type | Explanation
+---|---
+ByteColumn | 8 bit integer
+ShortColumn | 16 bit integer
+CharColumn | 16 bit integer unsigned<sup>1</sup>
+IntColumn | 32 bit integer
+LongColumn | 64 bit integer
+VarintColumn | Variable byte coded integer
+
+[1] matches the Java type
+
+### Floating Point
+
+Type | Explanation
+---|---
+FloatColumn | 32 bit floating point
+DoubleColumn | 64 bit floating point
+
+### String
+
+Type | Explanation
+---|---
+StringColumn | String with a separate varint coded length column
+CStringColumn | String separated with a '\0' byte field separator
+TxtStringColumn | String separated with a '\n' byte field separator
+EnumColumn | String with a separate lexicon of values, data stored as varint ordinals
+
+String columns permits the specification of Charset.  If possible, use
+`StandardCharsets.US_ASCII` as it is significantly faster.  Otherwise UTF-8 works as well.
+
+
+### Arrays
+
+Type | Explanation
+---|---
+ByteArrayColumn | Stores byte[]
+IntArrayColumn | Stores int[]
+LongArrayColumn | Stores long[]
 
 ## Storage Types
 
-TBW
+Slop supports plain storage, as well as compressed storage.  Plain storage
+means the data can be memory mapped, reducing copies while reading.
+
+Three type are currently supported
+
+Type | Explanation | Memory Mapped I/O
+---|---|---
+PLAIN | No compression | Yes
+GZIP | Gzip compression | No
+ZSTD | Zstd compression | No
+
+See the [StorageType](src/main/java/nu/marginalia/slop/desc/StorageType.java) enum.
 
 ## Extension
 
-TBW
+It is possible to extend Slop with new column types, by just creating such a class.
+
+Refer to the existing column types for a template.
 
 ## Zip Storage
 
