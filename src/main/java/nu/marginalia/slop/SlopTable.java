@@ -30,6 +30,7 @@ public class SlopTable implements AutoCloseable {
 
     public final URI uri;
     public final int page;
+    private boolean closed = false;
 
     public SlopTable(Path path) { this(path.toUri(), 0); }
     public SlopTable(URI uri) { this(uri, 0); }
@@ -91,6 +92,7 @@ public class SlopTable implements AutoCloseable {
     }
 
     public void close() throws IOException {
+        if (closed) return;
 
         Map<Long, List<AbstractColumn<?,?>>> positions = new HashMap<>();
 
@@ -103,6 +105,7 @@ public class SlopTable implements AutoCloseable {
             writer.close();
         }
 
+        closed = true;
 
         // Check for the scenario where we have multiple positions
         // and one of the positions is zero, indicating that we haven't
