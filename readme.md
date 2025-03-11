@@ -73,6 +73,10 @@ Beyond that, you're largely on your own to ensure that the data is consistent.
 
 ## Why though?
 
+When migrating from Parquet (in Java) to Slop, the Marginalia Search crawler reduced its 
+RAM usage by approximately 120 GB, and the subsequent processing step requires
+~25% of the processing time.
+
 Slop is fast:  Slop generally outperforms most other storage formats available in Java
 (e.g. anything over jdbc, parquet, protobuf) when it comes to sequential 
 reads and writes, at the cost of really only supporting this one use case.
