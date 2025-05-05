@@ -81,6 +81,15 @@ class VarintColumnTest {
             assertEquals(6000000000L, column.getLong());
             assertEquals(1, column.get());
         }
+
+        try (var table = new SlopTable(tempDir)) {
+            var column = columnDesc.open(table);
+            column.skip(3);
+            assertEquals(1, column.get());
+            assertEquals(0, column.get());
+            assertEquals(6000000000L, column.getLong());
+            assertEquals(1, column.get());
+        }
     }
 
     @Test

@@ -73,6 +73,13 @@ class StringColumnTest {
             assertEquals("Ipsum", column.get());
             assertFalse(column.hasRemaining());
         }
+
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.open(table);
+            column.skip(1);
+            assertEquals("Ipsum", column.get());
+            assertFalse(column.hasRemaining());
+        }
     }
 
     @Test
@@ -95,6 +102,13 @@ class StringColumnTest {
 
             assertFalse(column.hasRemaining());
         }
+
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.open(table);
+            column.skip(1);
+            assertEquals("Ipsum", column.get());
+            assertFalse(column.hasRemaining());
+        }
     }
     @Test
     void testCStr() throws IOException {
@@ -108,6 +122,13 @@ class StringColumnTest {
         try (var table = new SlopTable(tempDir, 0)) {
             var column = columnDesc.open(table);
             assertEquals("Lorem", column.get());
+            assertEquals("Ipsum", column.get());
+            assertFalse(column.hasRemaining());
+        }
+
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.open(table);
+            column.skip(1);
             assertEquals("Ipsum", column.get());
             assertFalse(column.hasRemaining());
         }
@@ -125,6 +146,13 @@ class StringColumnTest {
         try (var table = new SlopTable(tempDir, 0)) {
             var column = columnDesc.open(table);
             assertEquals("Lorem", column.get());
+            assertEquals("Ipsum", column.get());
+            assertFalse(column.hasRemaining());
+        }
+
+        try (var table = new SlopTable(tempDir, 0)) {
+            var column = columnDesc.open(table);
+            column.skip(1);
             assertEquals("Ipsum", column.get());
             assertFalse(column.hasRemaining());
         }

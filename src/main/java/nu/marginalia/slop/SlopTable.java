@@ -91,6 +91,19 @@ public class SlopTable implements AutoCloseable {
         return 0;
     }
 
+    /** Skip the given number of positions in the table.
+     * <p></p>
+     * If the table is populated with writers, this will throw an UnsupportedOperationException.
+     * */
+    public void skip(int positions) throws IOException {
+        if (!writerList.isEmpty())
+            throw new UnsupportedOperationException("Cannot skip in writer");
+
+        for (var reader : readerList) {
+            reader.skip(positions);
+        }
+    }
+
     public void close() throws IOException {
         if (closed) return;
 

@@ -12,66 +12,67 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-class ArrayColumnTest {
-    Path tempDir;
+public class ArrayColumnTest {
+  Path tempDir;
 
-    @BeforeEach
-    void setup() throws IOException {
-        tempDir = Files.createTempDirectory(getClass().getSimpleName());
+  @BeforeEach
+  void setup() throws IOException {
+    tempDir = Files.createTempDirectory(getClass().getSimpleName());
+  }
+
+  @AfterEach
+  void cleanup() {
+    try {
+      Files.walk(tempDir)
+          .sorted(this::deleteOrder)
+          .forEach(p -> {
+            try {
+              if (Files.isRegularFile(p)) {
+                System.out.println("Deleting " + p + " " + Files.size(p));
+              }
+              Files.delete(p);
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  int deleteOrder(Path a, Path b) {
+    if (Files.isDirectory(a) && !Files.isDirectory(b)) {
+      return 1;
+    } else if (!Files.isDirectory(a) && Files.isDirectory(b)) {
+      return -1;
+    } else {
+      return a.getNameCount() - b.getNameCount();
+    }
+  }
+
+  @Test
+  public void test() throws IOException {
+    fail();
+    var arrayCol = new IntArrayColumn("test", ByteOrder.LITTLE_ENDIAN, StorageType.PLAIN);
+
+    try (var table = new SlopTable(tempDir)) {
+
+      var column = arrayCol.create(table);
+
+      column.put(new int[] { 11, 22, 33 });
+      column.put(new int[] { 2 });
+      column.put(new int[] { 444 });
     }
 
-    @AfterEach
-    void cleanup() {
-        try {
-            Files.walk(tempDir)
-                    .sorted(this::deleteOrder)
-                    .forEach(p -> {
-                        try {
-                            if (Files.isRegularFile(p)) {
-                                System.out.println("Deleting " + p + " " + Files.size(p));
-                            }
-                            Files.delete(p);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    try (var table = new SlopTable(tempDir)) {
+      var column = arrayCol.open(table);
+
+      assertArrayEquals(new int[] { 11, 22, 33 }, column.get());
+      assertArrayEquals(new int[] { 2 }, column.get());
+      assertArrayEquals(new int[] { 444 }, column.get());
     }
-
-    int deleteOrder(Path a, Path b) {
-        if (Files.isDirectory(a) && !Files.isDirectory(b)) {
-            return 1;
-        } else if (!Files.isDirectory(a) && Files.isDirectory(b)) {
-            return -1;
-        } else {
-            return a.getNameCount() - b.getNameCount();
-        }
-    }
-
-    @Test
-    void test() throws IOException {
-        var arrayCol = new IntArrayColumn("test", ByteOrder.LITTLE_ENDIAN,  StorageType.PLAIN);
-
-        try (var table = new SlopTable(tempDir)) {
-
-            var column = arrayCol.create(table);
-
-            column.put(new int[] { 11, 22, 33});
-            column.put(new int[] { 2 });
-            column.put(new int[] { 444 });
-        }
-
-        try (var table = new SlopTable(tempDir)) {
-            var column = arrayCol.open(table);
-
-            assertArrayEquals(new int[] { 11, 22, 33}, column.get());
-            assertArrayEquals(new int[] { 2 }, column.get());
-            assertArrayEquals(new int[] { 444 }, column.get());
-        }
-    }
+  }
 
 }
