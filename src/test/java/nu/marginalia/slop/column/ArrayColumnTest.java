@@ -54,7 +54,6 @@ public class ArrayColumnTest {
 
   @Test
   public void test() throws IOException {
-    fail();
     var arrayCol = new IntArrayColumn("test", ByteOrder.LITTLE_ENDIAN, StorageType.PLAIN);
 
     try (var table = new SlopTable(tempDir)) {

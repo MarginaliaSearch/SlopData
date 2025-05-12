@@ -138,7 +138,6 @@ class IntColumnTest {
 
       assertTrue(column.hasRemaining());
     }
-    assertTrue(false);
   }
 
 }
