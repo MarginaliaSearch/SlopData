@@ -194,6 +194,6 @@ public class SimpleStorageWriter implements StorageWriter, AutoCloseable {
         channel.force(false);
         channel.close();
 
-        Files.move(tempPath, destPath, StandardCopyOption.REPLACE_EXISTING);
+        Files.move(tempPath, destPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     }
 }

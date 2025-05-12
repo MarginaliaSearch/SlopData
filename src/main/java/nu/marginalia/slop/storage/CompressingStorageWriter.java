@@ -205,6 +205,6 @@ public class CompressingStorageWriter implements StorageWriter, AutoCloseable {
         os.flush();
         os.close();
 
-        Files.move(tempPath, destPath, StandardCopyOption.REPLACE_EXISTING);
+        Files.move(tempPath, destPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     }
 }
