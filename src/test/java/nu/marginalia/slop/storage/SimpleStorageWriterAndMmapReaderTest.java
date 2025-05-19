@@ -1,6 +1,7 @@
 package nu.marginalia.slop.storage;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +72,16 @@ class SimpleStorageWriterAndMmapReaderTest {
             return new MmapStorageReader(path);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void testNoSuchColumnException() throws IOException {
+        try {
+            new MmapStorageReader(Path.of("/invalid/path"));
+            Assertions.fail();
+        } catch (NoSuchColumnException e) {
+            // Expected exception
         }
     }
 

@@ -1,6 +1,8 @@
 package nu.marginalia.slop.storage;
 
+import nu.marginalia.slop.desc.StorageType;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +73,17 @@ class SimpleStorageWriterAndReaderTest {
             return new SimpleStorageReader(path, ByteOrder.LITTLE_ENDIAN, 63);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+
+    @Test
+    public void testNoSuchColumnException() throws IOException {
+        try {
+            new SimpleStorageReader(Path.of("/invalid/path"), ByteOrder.LITTLE_ENDIAN, 63);
+            Assertions.fail();
+        } catch (NoSuchColumnException e) {
+            // Expected exception
         }
     }
 

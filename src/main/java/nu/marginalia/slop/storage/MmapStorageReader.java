@@ -22,6 +22,10 @@ public class MmapStorageReader implements StorageReader {
     private long position = 0;
 
     public MmapStorageReader(Path path) throws IOException {
+        if (!Files.isRegularFile(path)) {
+            throw new NoSuchColumnException(path.toString());
+        }
+
         arena = Arena.ofShared();
 
         try (var channel = (FileChannel) Files.newByteChannel(path, StandardOpenOption.READ)) {

@@ -5,6 +5,7 @@ import nu.marginalia.slop.SlopTable;
 import nu.marginalia.slop.column.primitive.ByteColumn;
 import nu.marginalia.slop.desc.StorageType;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,10 +54,27 @@ class NetworkStorageReaderTest {
             return a.getNameCount() - b.getNameCount();
         }
     }
-
+//
+//    @Test
+//    void testNetworkMissingColumn() throws Exception {
+//        var col = new ByteColumn("test", StorageType.PLAIN);
+//
+//
+//        HttpServer server = HttpServer.create(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 9998), 1);
+//        server.start();
+//        try (var slop = new SlopTable(new URI("http://localhost:9998/foo/"))) {
+//            var reader = col.open(slop);
+//            Assertions.fail();
+//        } catch (NoSuchColumnException e) {
+//            // expected
+//        }
+//        finally {
+//            server.stop(0);
+//        }
+//    }
 
     @Test
-    void testNetworkRead() throws IOException {
+    void testNetworkRead() throws IOException, InterruptedException {
         var col = new ByteColumn("test", StorageType.PLAIN);
 
         try (var slop = new SlopTable(tempDir)) {
@@ -69,17 +88,29 @@ class NetworkStorageReaderTest {
         HttpServer server = HttpServer.create(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 9999), 1);
 
         server.createContext("/foo/", context -> {
-            System.out.println("r:" + context.getRequestURI());
-            var path = context.getRequestURI().getPath();
-            path = path.substring(path.lastIndexOf('/') + 1);
+            try (context) {
+                System.out.println("r:" + context.getRequestURI());
 
-            context.sendResponseHeaders(200, Files.size(tempDir.resolve(path)));
-            try (var is = Files.newInputStream(tempDir.resolve(path))) {
-                is.transferTo(context.getResponseBody());
+                var path = context.getRequestURI().getPath();
+                path = path.substring(path.lastIndexOf('/') + 1);
+
+                var method = context.getRequestMethod();
+                System.out.println("m:" + method);
+                if (context.getRequestMethod().equals("HEAD")) {
+                    context.sendResponseHeaders(200, -1);
+                    return;
+                }
+
+                context.sendResponseHeaders(200, Files.size(tempDir.resolve(path)));
+                try (var is = Files.newInputStream(tempDir.resolve(path))) {
+                    is.transferTo(context.getResponseBody());
+                    System.out.println("Transferred " + path);
+                }
             }
         });
 
         server.start();
+
         try (var slop = new SlopTable(new URI("http://localhost:9999/foo/"))) {
             var reader = col.open(slop);
             for (int i = 0; i < 127; i++) {

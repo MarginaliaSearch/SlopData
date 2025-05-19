@@ -9,11 +9,15 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
 import java.util.zip.GZIPInputStream;
 
 public class NetworkStorageReader implements StorageReader {
@@ -25,6 +29,8 @@ public class NetworkStorageReader implements StorageReader {
     private final ByteBuffer buffer;
 
     public NetworkStorageReader(URL url, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
+
+        validateUrl(url);
 
         try {
             is = switch (storageType) {
@@ -46,6 +52,25 @@ public class NetworkStorageReader implements StorageReader {
         // read the first chunk, this is needed for InputStream otherwise we don't handle empty files
         // correctly
         refill();
+    }
+
+    private void validateUrl(URL url) throws IOException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url.toString()))
+                .timeout(Duration.ofSeconds(5))
+                .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                .build();
+        try (var client = HttpClient.newHttpClient()) {
+            var rsp = client.send(request, HttpResponse.BodyHandlers.discarding());
+            if (rsp.statusCode() != 200) {
+                throw new NoSuchColumnException("Invalid URL: " + url + " - Response code: " + rsp.statusCode());
+            }
+        } catch (NoSuchColumnException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException("Failed to validate URL: " + url, e);
+        }
     }
 
     @Override

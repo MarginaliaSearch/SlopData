@@ -5,6 +5,7 @@ import nu.marginalia.slop.SlopTablePacker;
 import nu.marginalia.slop.column.primitive.ByteColumn;
 import nu.marginalia.slop.desc.StorageType;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -89,6 +90,30 @@ public class ZipTest {
   }
 
   @Test
+  public void testAlignedMissingColumn() throws Exception {
+    ByteColumn byteColumn = new ByteColumn("test", StorageType.PLAIN);
+    ByteColumn byteColumn2 = new ByteColumn("test2", StorageType.PLAIN);
+
+    try (var table = new SlopTable(tempDir1)) {
+      var writer = byteColumn.create(table);
+      writer.put((byte) 0);
+      writer.put((byte) 4);
+      writer.put((byte) 5);
+      writer.put((byte) 1);
+    }
+
+    SlopTablePacker.packToSlopZip(tempDir1, tempDir2.resolve("test.slop.zip"));
+
+    try (var table = new SlopTable(tempDir2.resolve("test.slop.zip"))) {
+      var reader = byteColumn2.open(table);
+      Assertions.fail();
+    } catch (NoSuchColumnException e) {
+      // Expected exception
+    }
+
+  }
+
+  @Test
   public void testCompressed() throws Exception {
     ByteColumn byteColumn = new ByteColumn("test", StorageType.GZIP);
 
@@ -112,4 +137,25 @@ public class ZipTest {
     }
   }
 
+  @Test
+  public void testCompressedMissingColumn() throws Exception {
+    ByteColumn byteColumn = new ByteColumn("test", StorageType.GZIP);
+    ByteColumn byteColumn2 = new ByteColumn("test2", StorageType.GZIP);
+
+    try (var table = new SlopTable(tempDir1)) {
+      var writer = byteColumn.create(table);
+      writer.put((byte) 0);
+      writer.put((byte) 4);
+      writer.put((byte) 5);
+      writer.put((byte) 1);
+    }
+
+    SlopTablePacker.packToSlopZip(tempDir1, tempDir2.resolve("test.slop.zip"));
+
+    try (var table = new SlopTable(tempDir2.resolve("test.slop.zip"))) {
+      var reader = byteColumn2.open(table);
+      Assertions.fail();
+    } catch (NoSuchColumnException e) {
+    }
+  }
 }

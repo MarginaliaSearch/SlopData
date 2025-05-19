@@ -2,9 +2,11 @@ package nu.marginalia.slop.storage;
 
 import nu.marginalia.slop.desc.StorageType;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.awt.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -75,6 +77,16 @@ class CompressingStorageWriterAndReaderTest {
         }
     }
 
+
+    @Test
+    public void testNoSuchColumnException() throws IOException {
+        try {
+            new CompressingStorageReader(Path.of("/invalid/path"), StorageType.GZIP, ByteOrder.LITTLE_ENDIAN, 63);
+            Assertions.fail();
+        } catch (NoSuchColumnException e) {
+            // Expected exception
+        }
+    }
 
     @Test
     void putByte() throws IOException {

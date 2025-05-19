@@ -50,7 +50,7 @@ public interface Storage {
                 ZipArchiveEntry entry = zf.getEntry(abstractColumn.fileName(page));
 
                 if (entry == null) {
-                    throw new NullPointerException("Missing zip file entry " + abstractColumn.fileName(page));
+                    throw new NoSuchColumnException("Missing zip file entry " + abstractColumn.fileName(page));
                 }
 
                 if (entry.getMethod() != ZipArchiveEntry.STORED) {

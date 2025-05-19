@@ -44,7 +44,15 @@ public class CompressingStorageReader implements StorageReader {
     }
 
     public CompressingStorageReader(Path path, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
-        this(Files.newInputStream(path), storageType, order, bufferSize);
+        this(openInputStreamForFile(path), storageType, order, bufferSize);
+    }
+
+    /** Create a new reader for the given path, throwing NoSuchColumnException if it does not exist */
+    private static InputStream openInputStreamForFile(Path path) throws IOException {
+        if (!Files.isRegularFile(path)) {
+            throw new NoSuchColumnException(path.toString());
+        }
+        return Files.newInputStream(path, StandardOpenOption.READ);
     }
 
     /** Add a resource to be closed with this reader */

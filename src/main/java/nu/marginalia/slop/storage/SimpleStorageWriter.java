@@ -17,6 +17,7 @@ public class SimpleStorageWriter implements StorageWriter, AutoCloseable {
     private final Path destPath;
 
     public SimpleStorageWriter(Path path, ByteOrder order, int bufferSize) throws IOException {
+
         tempPath = path.resolveSibling(path.getFileName() + ".tmp");
         destPath = path;
 

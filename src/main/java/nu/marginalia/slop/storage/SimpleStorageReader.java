@@ -13,6 +13,9 @@ public class SimpleStorageReader implements StorageReader {
     private final FileChannel channel;
 
     public SimpleStorageReader(Path path, ByteOrder order, int bufferSize) throws IOException {
+        if (!Files.isRegularFile(path)) {
+            throw new NoSuchColumnException(path.toString());
+        }
         channel = (FileChannel) Files.newByteChannel(path, StandardOpenOption.READ);
 
         this.buffer = ByteBuffer.allocateDirect(bufferSize).order(order);

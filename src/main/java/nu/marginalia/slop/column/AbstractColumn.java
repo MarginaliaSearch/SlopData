@@ -3,11 +3,13 @@ package nu.marginalia.slop.column;
 import nu.marginalia.slop.desc.ColumnFunction;
 import nu.marginalia.slop.SlopTable;
 import nu.marginalia.slop.desc.StorageType;
+import nu.marginalia.slop.storage.NoSuchColumnException;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public abstract class AbstractColumn<R extends ColumnReader, W extends ColumnWriter> {
     public final String name;
@@ -46,8 +48,20 @@ public abstract class AbstractColumn<R extends ColumnReader, W extends ColumnWri
     public abstract W createUnregistered(Path path, int page) throws IOException;
 
     /** Open a column for reading, registering it to the table */
-    public R open(SlopTable table) throws IOException {
+    public R open(SlopTable table) throws NoSuchColumnException, IOException {
         return table.register(openUnregistered(table.uri, table.page));
+    }
+
+    /** Open a column for reading, registering it to the table.
+     *  If the column does not exist, return an empty Optional.
+     * */
+    public Optional<R> tryOpen(SlopTable table) throws IOException {
+        try {
+            return Optional.of(table.register(openUnregistered(table.uri, table.page)));
+        }
+        catch (NoSuchColumnException e) {
+            return Optional.empty();
+        }
     }
 
     /** Open a column for writing, registering it to the table */
