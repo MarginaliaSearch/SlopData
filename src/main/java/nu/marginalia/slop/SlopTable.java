@@ -104,6 +104,13 @@ public class SlopTable implements AutoCloseable {
         }
     }
 
+    /** Align all readers with the target reader */
+    public void alignAll(ColumnReader target) throws IOException {
+        for (ColumnReader reader : readerList) {
+            reader.align(target);
+        }
+    }
+
     public void close() throws IOException {
         if (closed) return;
 
