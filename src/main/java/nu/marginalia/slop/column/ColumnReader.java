@@ -22,6 +22,18 @@ public interface ColumnReader {
             throw new IOException("Target reader is behind alignment reader");
     }
 
+    /** Advance the current reader to the position behind the target.
+     * @throws IOException on I/O errors or if the target is behind or aligned with this reader
+     */
+    default void prealign(ColumnReader target) throws IOException {
+        long toSkip = target.position() - position() - 1;
+
+        if (toSkip > 0)
+            skip(toSkip);
+        else if (toSkip < 0)
+            throw new IOException("Target reader is behind alignment reader");
+    }
+
     boolean hasRemaining() throws IOException;
 
     void close() throws IOException;
