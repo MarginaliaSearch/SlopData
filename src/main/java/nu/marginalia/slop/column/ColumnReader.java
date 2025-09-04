@@ -14,7 +14,7 @@ public interface ColumnReader {
      * @throws IOException on I/O errors or if the target is behind this reader
      */
     default void align(ColumnReader target) throws IOException {
-        long toSkip = target.position() - position();
+        long toSkip = target.position() - this.position();
 
         if (toSkip > 0)
             skip(toSkip);
@@ -22,11 +22,15 @@ public interface ColumnReader {
             throw new IOException("Target reader is behind alignment reader");
     }
 
-    /** Advance the current reader to the position behind the target.
-     * @throws IOException on I/O errors or if the target is behind or aligned with this reader
+    /** Advance the current reader to the position behind the target.  If the target is the same object
+     * as this, nothing is done.
+     *
+     * @throws IOException on I/O errors or if the target is behind or aligned with this reader and this reader is not the target
      */
     default void prealign(ColumnReader target) throws IOException {
-        long toSkip = target.position() - position() - 1;
+        if (target == this) return;
+
+        long toSkip = target.position() - this.position() - 1;
 
         if (toSkip > 0)
             skip(toSkip);

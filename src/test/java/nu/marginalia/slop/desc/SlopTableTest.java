@@ -87,6 +87,42 @@ public class SlopTableTest {
         }
     }
 
+    @Test
+    public void testAlignSeek() throws IOException {
+        var cd3 = new IntColumn("test1", StorageType.PLAIN);
+        var cd6 = new IntColumn("test2", StorageType.PLAIN);
+        var cd9 = new IntColumn("test3", StorageType.PLAIN);
+
+        try (SlopTable writerTable = new SlopTable(tempDir)) {
+            var column3 = cd3.create(writerTable);
+            var column6 = cd6.create(writerTable);
+            var column9 = cd9.create(writerTable);
+
+            for (int i = 0; i < 129; i++) {
+                column3.put(3*i);
+                column6.put(6*i);
+                column9.put(9*i);
+            }
+        }
+
+
+        try (SlopTable readerTable = new SlopTable(tempDir)) {
+            var column3 = cd3.open(readerTable);
+            var column6 = cd6.open(readerTable);
+            var column9 = cd9.open(readerTable);
+
+            while (column6.hasRemaining()) {
+                int v6;
+                if (((v6 = column6.get()) % 5) == 0) {
+                    readerTable.prealignAll(column6);
+                }
+                else continue;
+
+                System.out.println(column3.get() + ":" + v6 + ":" + column9.get());
+            }
+            readerTable.alignAll(column6);
+        }
+    }
 
     @Test
     public void testPositionsMisaligned() throws IOException {
