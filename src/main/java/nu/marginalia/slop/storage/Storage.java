@@ -35,8 +35,8 @@ public interface Storage {
                     return new MmapStorageReader(filePath);
                 } else {
                     final int bufferSize = switch (abstractColumn.function) {
-                        case DATA -> 4096;
-                        default -> 1024;
+                        case DATA -> 128*1024;
+                        default -> 65536;
                     };
 
                     return switch (storageType) {
@@ -72,8 +72,8 @@ public interface Storage {
                 }
                 else {
                     final int bufferSize = switch (abstractColumn.function) {
-                        case DATA -> 4096;
-                        default -> 1024;
+                        case DATA -> 128*1024;
+                        default -> 65536;
                     };
 
                     return new CompressingStorageReader(zf.getInputStream(entry), storageType, byteOrder, bufferSize)
@@ -108,8 +108,8 @@ public interface Storage {
         Path filePath = path.resolve(abstractColumn.fileName(page));
 
         final int bufferSize = switch(abstractColumn.function) {
-            case DATA -> 4096;
-            default -> 1024;
+            case DATA -> 65536;
+            default -> 65536;
         };
 
         return switch (storageType) {
