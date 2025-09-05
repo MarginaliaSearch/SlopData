@@ -127,9 +127,10 @@ public record Population(String city, int population, double avgAge) {
         private final DoubleColumn.Writer avgAgeWriter;
 
         public Writer(Path baseDir) throws IOException {
-            citiesWriter = citiesColumn.create(this, baseDir);
-            populationWriter = populationColumn.create(this, baseDir);
-            avgAgeWriter = averageAgeColumnn.create(this, baseDir);
+            super(baseDir);
+            citiesWriter = citiesColumn.create(this);
+            populationWriter = populationColumn.create(this);
+            avgAgeWriter = averageAgeColumnn.create(this);
         }
 
         public void write(Population data) throws IOException {
@@ -146,9 +147,10 @@ public record Population(String city, int population, double avgAge) {
         private final DoubleColumn.Reader avgAgeReader;
 
         public Reader(Path baseDir) throws IOException {
-            citiesReader = citiesColumn.open(this, baseDir);
-            populationReader = populationColumn.open(this, baseDir);
-            avgAgeReader = averageAgeColumnn.open(this, baseDir);
+            super(baseDir);
+            citiesReader = citiesColumn.open(this);
+            populationReader = populationColumn.open(this);
+            avgAgeReader = averageAgeColumnn.open(this);
         }
 
         public boolean hasRemaining() throws IOException {
@@ -184,6 +186,43 @@ and in parallel.  It's also useful in batch processing, as each file can be proc
 of a terminated job without having to reprocess the entire dataset.
 
 TBW
+
+## Conditional reads
+
+The library is primarily designed for full consumption of the entire data stream,
+as the library is columnar only the columns that are needed has to be opened and
+the rest generate zero overhead. 
+
+A paradigm exists for reading only specific rows, though depending on the underlying
+storage this may still generate considerable work.
+
+
+```java
+try (var table = new SlopTable(dir)) {
+    citiesReader = citiesColumn.open(table);
+    avgAgeReader = averageAgeColumnn.open(table);
+    populationReader = populationColumn.open(table);
+    
+    while (avgAgeReader.hasRemaining()) {
+        double averageAge;
+        
+        // Paradigm for seeking in table
+        if ((averageAge = avgAgeReader.get()) < 30) {
+            // Put the rest of the columns to the position before avgAgeReader
+            table.prealignAll(avgAgeReader);
+        }
+        else continue;
+        
+        int population = populationReader.get();
+        String city = citiesReader.get();
+        System.out.println(city + " has a young population of " population + ", avg age = " + avgAge);
+    }
+        
+    // Align all columns to avoid accounting errors
+    table.alignAll(avgAgeReader);
+}
+
+```
 
 ## Column Types
 
