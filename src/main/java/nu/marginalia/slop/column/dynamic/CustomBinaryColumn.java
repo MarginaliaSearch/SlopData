@@ -120,10 +120,11 @@ public class CustomBinaryColumn extends AbstractColumn<CustomBinaryColumn.Reader
 
         @Override
         public void skip(long positions) throws IOException {
+            long toSkip = 0;
             for (int i = 0; i < positions; i++) {
-                int size = (int) indexReader.get();
-                storage.skip(size, 1);
+                toSkip += indexReader.get();
             }
+            storage.skip(toSkip, 1);
         }
 
         @Override

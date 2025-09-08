@@ -121,10 +121,11 @@ public class IntArrayColumn extends AbstractObjectColumn<int[], IntArrayColumn.R
 
         @Override
         public void skip(long positions) throws IOException {
+            long toSkip = 0;
             for (int i = 0; i < positions; i++) {
-                int size = (int) lengthsReader.get();
-                storage.skip(size, Integer.BYTES);
+                toSkip += lengthsReader.get();
             }
+            storage.skip(toSkip, Integer.BYTES);
         }
 
         @Override

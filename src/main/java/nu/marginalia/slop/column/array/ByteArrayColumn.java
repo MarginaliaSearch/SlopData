@@ -130,10 +130,11 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
 
         @Override
         public void skip(long positions) throws IOException {
+            long toSkip = 0;
             for (int i = 0; i < positions; i++) {
-                int size = lengthsReader.get();
-                storage.skip(size, 1);
+                toSkip += lengthsReader.get();
             }
+            storage.skip(toSkip, 1);
         }
 
         @Override
