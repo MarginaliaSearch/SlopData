@@ -42,6 +42,7 @@ public interface Storage {
                     return switch (storageType) {
                         case PLAIN -> new SimpleStorageReader(filePath, byteOrder, bufferSize);
                         case GZIP, ZSTD -> new CompressingStorageReader(filePath, storageType, byteOrder, bufferSize);
+                        case ZSTD_BLOCK, ZSTD_BLOCK_SEQUENTIAL_ACCESS -> new BlockCompressedStorageReader(filePath);
                     };
                 }
             }
@@ -88,6 +89,12 @@ public interface Storage {
 
             var url = uri.resolve(abstractColumn.fileName(page)).toURL();
 
+            if (storageType == StorageType.ZSTD_BLOCK) {
+                return new BlockCompressedNetworkStorageReader(url);
+            } else if (storageType == StorageType.ZSTD_BLOCK_SEQUENTIAL_ACCESS) {
+                return new BlockCompressedStreamingNetworkStorageReader(url);
+            }
+
             return new NetworkStorageReader(url, storageType, byteOrder, 65536);
         }
         else {
@@ -115,6 +122,7 @@ public interface Storage {
         return switch (storageType) {
             case PLAIN -> new SimpleStorageWriter(filePath, byteOrder, bufferSize);
             case GZIP, ZSTD -> new CompressingStorageWriter(filePath, storageType, byteOrder, bufferSize);
+            case ZSTD_BLOCK, ZSTD_BLOCK_SEQUENTIAL_ACCESS -> new BlockCompressedStorageWriter(filePath, bufferSize);
         };
     }
 }

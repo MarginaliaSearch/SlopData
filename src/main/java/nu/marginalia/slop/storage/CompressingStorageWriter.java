@@ -30,7 +30,7 @@ public class CompressingStorageWriter implements StorageWriter, AutoCloseable {
         os = switch (storageType) {
             case GZIP -> new GZIPOutputStream(Files.newOutputStream(tempPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
             case ZSTD -> new ZstdCompressorOutputStream(Files.newOutputStream(tempPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
-            default -> throw new IllegalArgumentException("Unsupported storage type: " + storageType);
+            case PLAIN, ZSTD_BLOCK, ZSTD_BLOCK_SEQUENTIAL_ACCESS -> throw new IllegalArgumentException("Unsupported storage type: " + storageType);
         };
 
         arrayBuffer = new byte[bufferSize];

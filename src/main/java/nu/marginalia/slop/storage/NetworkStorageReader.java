@@ -6,7 +6,6 @@ import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStre
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
@@ -37,6 +36,7 @@ public class NetworkStorageReader implements StorageReader {
                 case GZIP -> new GZIPInputStream(new BufferedInputStream(url.openStream()));
                 case ZSTD -> new ZstdCompressorInputStream(new BufferedInputStream(url.openStream()));
                 case PLAIN -> url.openStream(); // we do our own buffering so no need for BufferedInputStream
+                case ZSTD_BLOCK, ZSTD_BLOCK_SEQUENTIAL_ACCESS -> throw new IllegalArgumentException("ZSTD_BLOCK is not supported for network reads");
             };
         }
         catch (IOException e) {
@@ -231,7 +231,7 @@ public class NetworkStorageReader implements StorageReader {
 
     @Override
     public void seek(long position, int stepSize) throws IOException {
-        throw new UnsupportedEncodingException("Seek not supported in GzipStorageReader");
+        throw new UnsupportedOperationException("Seek not supported in NetworkStorageReader");
     }
 
     private void refill() throws IOException {

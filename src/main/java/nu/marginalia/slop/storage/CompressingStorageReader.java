@@ -5,7 +5,6 @@ import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStre
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
@@ -30,6 +29,7 @@ public class CompressingStorageReader implements StorageReader {
             case GZIP -> new GZIPInputStream(stream);
             case ZSTD -> new ZstdCompressorInputStream(stream);
             case PLAIN -> stream;
+            case ZSTD_BLOCK, ZSTD_BLOCK_SEQUENTIAL_ACCESS -> throw new IllegalArgumentException("ZSTD_BLOCK is not a streaming format; use BlockCompressedStorageReader instead");
         };
 
         this.arrayBuffer = new byte[bufferSize];
@@ -219,7 +219,7 @@ public class CompressingStorageReader implements StorageReader {
 
     @Override
     public void seek(long position, int stepSize) throws IOException {
-        throw new UnsupportedEncodingException("Seek not supported in GzipStorageReader");
+        throw new UnsupportedOperationException("Seek not supported in CompressingStorageReader");
     }
 
     private void refill() throws IOException {

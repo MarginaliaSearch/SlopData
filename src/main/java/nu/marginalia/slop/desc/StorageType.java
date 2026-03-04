@@ -9,6 +9,13 @@ public enum StorageType {
     GZIP("gz"),
     /** The column is stored as a compressed binary file using the ZSTD algorithm. */
     ZSTD("zstd"),
+    /** The column is stored as a block-compressed binary file using the ZSTD algorithm, supporting random-access seeking. */
+    ZSTD_BLOCK("zstdb"),
+    /** The column is stored as a block-compressed binary file using the ZSTD algorithm.
+     *  Over a network, the data section is fetched as a single stream rather than one range
+     *  request per block; seeking is not supported in this mode.  The on-disk format is
+     *  identical to ZSTD_BLOCK. */
+    ZSTD_BLOCK_SEQUENTIAL_ACCESS("zstdb"),
     ;
 
     public String nmnemonic;
