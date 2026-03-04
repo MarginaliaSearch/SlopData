@@ -8,6 +8,7 @@ version = '0.0.17-SNAPSHOT'
 
 repositories {
     mavenLocal()
+    mavenCentral()
     maven { url "https://artifactory.cronapp.io/public-release/" }
     maven { url "https://repo1.maven.org/maven2/" }
     maven { url "https://www2.ph.ed.ac.uk/maven2/" }
@@ -23,7 +24,6 @@ repositories {
             includeModule("com.github.Marcono1234", "gson-record-type-adapter-factory")
         }
     }
-    mavenCentral()
 }
 
 publishing {
@@ -58,6 +58,7 @@ dependencies {
     implementation('com.github.luben:zstd-jni:1.5.2-2')
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
