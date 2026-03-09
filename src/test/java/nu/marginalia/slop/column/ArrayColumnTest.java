@@ -1,5 +1,6 @@
 package nu.marginalia.slop.column;
 
+import nu.marginalia.slop.column.array.FloatArrayColumn;
 import nu.marginalia.slop.column.array.IntArrayColumn;
 import nu.marginalia.slop.SlopTable;
 import nu.marginalia.slop.desc.StorageType;
@@ -49,6 +50,27 @@ public class ArrayColumnTest {
       return -1;
     } else {
       return a.getNameCount() - b.getNameCount();
+    }
+  }
+
+  @Test
+  public void testFloatArray() throws IOException {
+    var arrayCol = new FloatArrayColumn("test", ByteOrder.LITTLE_ENDIAN, StorageType.PLAIN);
+
+    try (var table = new SlopTable(tempDir)) {
+      var column = arrayCol.create(table);
+
+      column.put(new float[] { 1.5f, 2.5f, 3.5f });
+      column.put(new float[] { 0.25f });
+      column.put(new float[] { 100.0f });
+    }
+
+    try (var table = new SlopTable(tempDir)) {
+      var column = arrayCol.open(table);
+
+      assertArrayEquals(new float[] { 1.5f, 2.5f, 3.5f }, column.get());
+      assertArrayEquals(new float[] { 0.25f }, column.get());
+      assertArrayEquals(new float[] { 100.0f }, column.get());
     }
   }
 
