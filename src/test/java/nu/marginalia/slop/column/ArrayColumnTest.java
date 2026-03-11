@@ -1,5 +1,6 @@
 package nu.marginalia.slop.column;
 
+import nu.marginalia.slop.column.array.DoubleArrayColumn;
 import nu.marginalia.slop.column.array.FloatArrayColumn;
 import nu.marginalia.slop.column.array.IntArrayColumn;
 import nu.marginalia.slop.SlopTable;
@@ -71,6 +72,27 @@ public class ArrayColumnTest {
       assertArrayEquals(new float[] { 1.5f, 2.5f, 3.5f }, column.get());
       assertArrayEquals(new float[] { 0.25f }, column.get());
       assertArrayEquals(new float[] { 100.0f }, column.get());
+    }
+  }
+
+  @Test
+  public void testDoubleArray() throws IOException {
+    var arrayCol = new DoubleArrayColumn("test", ByteOrder.LITTLE_ENDIAN, StorageType.PLAIN);
+
+    try (var table = new SlopTable(tempDir)) {
+      var column = arrayCol.create(table);
+
+      column.put(new double[] { 1.5, 2.5, 3.5 });
+      column.put(new double[] { 0.25 });
+      column.put(new double[] { 100.0 });
+    }
+
+    try (var table = new SlopTable(tempDir)) {
+      var column = arrayCol.open(table);
+
+      assertArrayEquals(new double[] { 1.5, 2.5, 3.5 }, column.get());
+      assertArrayEquals(new double[] { 0.25 }, column.get());
+      assertArrayEquals(new double[] { 100.0 }, column.get());
     }
   }
 
