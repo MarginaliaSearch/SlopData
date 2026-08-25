@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractColumn<R extends ColumnReader, W extends ColumnWriter> {
@@ -18,17 +20,36 @@ public abstract class AbstractColumn<R extends ColumnReader, W extends ColumnWri
     public final StorageType storageType;
     public final String typeMnemonic;
 
+    public final List<ColumnOption> additionalOptions = new ArrayList<>();
+
     public AbstractColumn(String columnName,
                           String typeMnemonic,
                           ByteOrder byteOrder,
                           ColumnFunction function,
-                          StorageType storageType)
+                          StorageType storageType,
+                          ColumnOption... options)
     {
         this.name = columnName;
         this.byteOrder = byteOrder;
         this.function = function;
         this.storageType = storageType;
         this.typeMnemonic = typeMnemonic;
+        this.additionalOptions.addAll(List.of(options));
+    }
+
+    public AbstractColumn(String columnName,
+                          String typeMnemonic,
+                          ByteOrder byteOrder,
+                          ColumnFunction function,
+                          StorageType storageType,
+                          List<ColumnOption> options)
+    {
+        this.name = columnName;
+        this.byteOrder = byteOrder;
+        this.function = function;
+        this.storageType = storageType;
+        this.typeMnemonic = typeMnemonic;
+        this.additionalOptions.addAll(options);
     }
 
     public abstract int alignmentSize();

@@ -1,6 +1,7 @@
 package nu.marginalia.slop.column.dynamic;
 
 import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.ColumnOption;
 import nu.marginalia.slop.column.ColumnReader;
 import nu.marginalia.slop.column.ColumnWriter;
 import nu.marginalia.slop.desc.ColumnFunction;
@@ -26,12 +27,13 @@ public class CustomBinaryColumn extends AbstractColumn<CustomBinaryColumn.Reader
         this(name, ColumnFunction.DATA, storageType);
     }
 
-    public CustomBinaryColumn(String name, ColumnFunction function, StorageType storageType) {
+    public CustomBinaryColumn(String name, ColumnFunction function, StorageType storageType, ColumnOption... options) {
         super(name,
                 "s8[]+custom",
                 ByteOrder.nativeOrder(),
                 function,
-                storageType);
+                storageType,
+                options);
         lengthColumn = new VarintColumn(name, ColumnFunction.DATA_LEN, StorageType.PLAIN);
     }
 

@@ -1,6 +1,7 @@
 package nu.marginalia.slop.column.primitive;
 
 import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.ColumnOption;
 import nu.marginalia.slop.column.ColumnReader;
 import nu.marginalia.slop.column.ColumnWriter;
 import nu.marginalia.slop.desc.ColumnFunction;
@@ -28,12 +29,13 @@ public class IntColumn extends AbstractColumn<IntColumn.Reader, IntColumn.Writer
         this(name, byteOrder, ColumnFunction.DATA, storageType);
     }
 
-    public IntColumn(String name, ByteOrder byteOrder, ColumnFunction function, StorageType storageType) {
+    public IntColumn(String name, ByteOrder byteOrder, ColumnFunction function, StorageType storageType, ColumnOption... options) {
         super(name,
                 "s32" + (byteOrder == ByteOrder.BIG_ENDIAN ? "be" : "le"),
                 byteOrder,
                 function,
-                storageType);
+                storageType,
+                options);
     }
 
     @Override

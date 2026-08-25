@@ -1,6 +1,7 @@
 package nu.marginalia.slop.column.primitive;
 
 import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.ColumnOption;
 import nu.marginalia.slop.column.ColumnReader;
 import nu.marginalia.slop.column.ColumnWriter;
 import nu.marginalia.slop.desc.ColumnFunction;
@@ -28,8 +29,8 @@ public class ShortColumn extends AbstractColumn<ShortColumn.Reader, ShortColumn.
         this(name, byteOrder, ColumnFunction.DATA, storageType);
     }
 
-    public ShortColumn(String name, ByteOrder byteOrder, ColumnFunction function, StorageType storageType) {
-        super(name, "s16" + (byteOrder == ByteOrder.BIG_ENDIAN ? "be" : "le"), byteOrder, function, storageType);
+    public ShortColumn(String name, ByteOrder byteOrder, ColumnFunction function, StorageType storageType, ColumnOption... options) {
+        super(name, "s16" + (byteOrder == ByteOrder.BIG_ENDIAN ? "be" : "le"), byteOrder, function, storageType, options);
     }
 
     @Override

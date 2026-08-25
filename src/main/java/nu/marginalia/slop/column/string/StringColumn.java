@@ -23,17 +23,14 @@ public class StringColumn extends AbstractObjectColumn<String, StringColumn.Read
         this(name, charset, StorageType.PLAIN);
     }
 
-    public StringColumn(String name, Charset charset, StorageType storageType) {
-        super(name, "s8[]+str+"+charset.displayName(), ByteOrder.nativeOrder(), ColumnFunction.DATA, storageType);
-
-        this.backingColumn = new ByteArrayColumn(name, function, storageType);
-        this.charset = charset;
+    public StringColumn(String name, Charset charset, StorageType storageType, ColumnOption... options) {
+        this(name, charset, ColumnFunction.DATA, storageType, options);
     }
 
-    public StringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType) {
-        super(name, "s8[]+str+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType);
+    public StringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType, ColumnOption... options) {
+        super(name, "s8[]+str+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType, options);
 
-        this.backingColumn = new ByteArrayColumn(name, function, storageType);
+        this.backingColumn = new ByteArrayColumn(name, function, storageType, options);
         this.charset = charset;
     }
 

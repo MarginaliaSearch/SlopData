@@ -1,5 +1,7 @@
 package nu.marginalia.slop.storage;
 
+import com.github.luben.zstd.Zstd;
+import nu.marginalia.slop.column.AbstractColumn;
 import nu.marginalia.slop.desc.StorageType;
 import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream;
 
@@ -23,18 +25,31 @@ public class CompressingStorageWriter implements StorageWriter, AutoCloseable {
     private final Path tempPath;
     private final Path destPath;
 
-    public CompressingStorageWriter(Path path, StorageType storageType, ByteOrder order, int bufferSize) throws IOException {
+    /** @param compressionLevel the Zstd compression level; ignored for GZIP */
+    public CompressingStorageWriter(Path path, StorageType storageType, ByteOrder order, int bufferSize, int compressionLevel) throws IOException {
         tempPath = path.resolveSibling(path.getFileName() + ".tmp");
         destPath = path;
 
+        if (storageType == StorageType.ZSTD) {
+            validateZstdCompressionLevel(compressionLevel);
+        }
+
         os = switch (storageType) {
             case GZIP -> new GZIPOutputStream(Files.newOutputStream(tempPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
-            case ZSTD -> new ZstdCompressorOutputStream(Files.newOutputStream(tempPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
+            case ZSTD -> new ZstdCompressorOutputStream(Files.newOutputStream(tempPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE), compressionLevel);
             case PLAIN, ZSTD_BLOCK, ZSTD_BLOCK_SEQUENTIAL_ACCESS -> throw new IllegalArgumentException("Unsupported storage type: " + storageType);
         };
 
         arrayBuffer = new byte[bufferSize];
         this.buffer = ByteBuffer.wrap(arrayBuffer).order(order);
+    }
+
+    static void validateZstdCompressionLevel(int compressionLevel) {
+        int min = Zstd.minCompressionLevel();
+        int max = Zstd.maxCompressionLevel();
+        if (compressionLevel < min || compressionLevel > max) {
+            throw new IllegalArgumentException("Zstd compression level " + compressionLevel + " is out of range [" + min + ", " + max + "]");
+        }
     }
 
     @Override

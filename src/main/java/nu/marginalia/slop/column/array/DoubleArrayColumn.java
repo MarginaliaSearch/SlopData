@@ -1,9 +1,6 @@
 package nu.marginalia.slop.column.array;
 
-import nu.marginalia.slop.column.AbstractColumn;
-import nu.marginalia.slop.column.AbstractObjectColumn;
-import nu.marginalia.slop.column.ObjectColumnReader;
-import nu.marginalia.slop.column.ObjectColumnWriter;
+import nu.marginalia.slop.column.*;
 import nu.marginalia.slop.column.dynamic.VarintColumn;
 import nu.marginalia.slop.desc.ColumnFunction;
 import nu.marginalia.slop.desc.StorageType;
@@ -28,12 +25,13 @@ public class DoubleArrayColumn extends AbstractObjectColumn<double[], DoubleArra
         this(name, ByteOrder.nativeOrder(), storageType);
     }
 
-    public DoubleArrayColumn(String name, ByteOrder byteOrder, StorageType storageType) {
+    public DoubleArrayColumn(String name, ByteOrder byteOrder, StorageType storageType, ColumnOption... options) {
         super(name,
                 "fp64" + (byteOrder == ByteOrder.BIG_ENDIAN ? "be" : "le") + "[]",
                 byteOrder,
                 ColumnFunction.DATA,
-                storageType);
+                storageType,
+                options);
 
         lengthColumn = new VarintColumn(name, ColumnFunction.DATA_LEN, StorageType.PLAIN);
     }

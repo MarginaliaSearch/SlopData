@@ -1,6 +1,7 @@
 package nu.marginalia.slop.column.primitive;
 
 import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.ColumnOption;
 import nu.marginalia.slop.column.ColumnReader;
 import nu.marginalia.slop.column.ColumnWriter;
 import nu.marginalia.slop.desc.ColumnFunction;
@@ -24,8 +25,9 @@ public class ByteColumn extends AbstractColumn<ByteColumn.Reader, ByteColumn.Wri
         this(name, ColumnFunction.DATA, storageType);
     }
 
-    public ByteColumn(String name, ColumnFunction function, StorageType storageType) {
-        super(name,"s8", ByteOrder.nativeOrder(), function, storageType);
+
+    public ByteColumn(String name, ColumnFunction function, StorageType storageType, ColumnOption... options) {
+        super(name,"s8", ByteOrder.nativeOrder(), function, storageType, options);
     }
 
     @Override

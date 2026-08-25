@@ -1,6 +1,7 @@
 package nu.marginalia.slop.storage;
 
 import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.ColumnOption;
 import nu.marginalia.slop.desc.StorageType;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -119,10 +120,17 @@ public interface Storage {
             default -> 65536;
         };
 
+        int compressionLevel = 3;
+        for (var option: abstractColumn.additionalOptions) {
+            switch (option) {
+                case ColumnOption.ZstdCompressionLevel(int value) -> compressionLevel = value;
+            }
+        }
+
         return switch (storageType) {
             case PLAIN -> new SimpleStorageWriter(filePath, byteOrder, bufferSize);
-            case GZIP, ZSTD -> new CompressingStorageWriter(filePath, storageType, byteOrder, bufferSize);
-            case ZSTD_BLOCK, ZSTD_BLOCK_SEQUENTIAL_ACCESS -> new BlockCompressedStorageWriter(filePath, bufferSize);
+            case GZIP, ZSTD -> new CompressingStorageWriter(filePath, storageType, byteOrder, bufferSize, compressionLevel);
+            case ZSTD_BLOCK, ZSTD_BLOCK_SEQUENTIAL_ACCESS -> new BlockCompressedStorageWriter(filePath, bufferSize, compressionLevel);
         };
     }
 }

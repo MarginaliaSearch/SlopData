@@ -24,12 +24,14 @@ public class LongArrayColumn extends AbstractObjectColumn<long[], LongArrayColum
         this(name, ByteOrder.nativeOrder(), storageType);
     }
 
-    public LongArrayColumn(String name, ByteOrder byteOrder, StorageType storageType) {
+    public LongArrayColumn(String name, ByteOrder byteOrder, StorageType storageType, ColumnOption... options) {
         super(name,
                 "s64" + (byteOrder == ByteOrder.BIG_ENDIAN ? "be" : "le") + "[]",
                 byteOrder,
                 ColumnFunction.DATA,
-                storageType);
+                storageType,
+                options);
+
         lengthsColumn = new VarintColumn(name, ColumnFunction.DATA_LEN, StorageType.PLAIN);
     }
 

@@ -29,8 +29,8 @@ public class TxtStringColumn extends AbstractObjectColumn<String, TxtStringColum
         this(name, charset, ColumnFunction.DATA, storageType);
     }
 
-    public TxtStringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType) {
-        super(name, "s8[]+txt+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType);
+    public TxtStringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType, ColumnOption... options) {
+        super(name, "s8[]+txt+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType, options);
 
         this.charset = charset;
     }

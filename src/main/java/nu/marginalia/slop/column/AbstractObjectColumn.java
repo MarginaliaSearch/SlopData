@@ -10,13 +10,22 @@ import java.util.List;
 public abstract class AbstractObjectColumn<T, R extends ObjectColumnReader<T>, W extends ObjectColumnWriter<T>>
  extends AbstractColumn<R, W> {
 
-    public AbstractObjectColumn(String name,
+    public AbstractObjectColumn(String columnName,
                                 String typeMnemonic,
                                 ByteOrder byteOrder,
                                 ColumnFunction function,
-                                StorageType storageType)
-    {
-        super(name, typeMnemonic, byteOrder, function, storageType);
+                                StorageType storageType,
+                                ColumnOption... options) {
+        super(columnName, typeMnemonic, byteOrder, function, storageType, options);
+    }
+
+    public AbstractObjectColumn(String columnName,
+                                String typeMnemonic,
+                                ByteOrder byteOrder,
+                                ColumnFunction function,
+                                StorageType storageType,
+                                List<ColumnOption> options) {
+        super(columnName, typeMnemonic, byteOrder, function, storageType, options);
     }
 
     public ObjectArrayColumn<T> asArray() {

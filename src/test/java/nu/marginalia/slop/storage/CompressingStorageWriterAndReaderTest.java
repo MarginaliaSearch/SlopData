@@ -63,7 +63,7 @@ class CompressingStorageWriterAndReaderTest {
 
     StorageWriter writer(Path path) {
         try {
-            return new CompressingStorageWriter(path, StorageType.GZIP, ByteOrder.LITTLE_ENDIAN, 63);
+            return new CompressingStorageWriter(path, StorageType.GZIP, ByteOrder.LITTLE_ENDIAN, 63, 3);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

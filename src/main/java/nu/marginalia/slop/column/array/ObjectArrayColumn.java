@@ -24,7 +24,8 @@ public class ObjectArrayColumn<T> extends AbstractObjectColumn<List<T>, ObjectAr
                 wrappingColumn.typeMnemonic + "[]", // not used
                 ByteOrder.nativeOrder(),
                 ColumnFunction.DATA,
-                wrappingColumn.storageType);
+                wrappingColumn.storageType,
+                wrappingColumn.additionalOptions);
 
         this.groupLengthColumn = new VarintColumn(name, ColumnFunction.GROUP_LENGTH, StorageType.PLAIN);
         this.wrappingColumn = wrappingColumn;

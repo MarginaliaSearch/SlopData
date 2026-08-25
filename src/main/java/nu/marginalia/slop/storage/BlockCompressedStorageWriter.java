@@ -1,6 +1,7 @@
 package nu.marginalia.slop.storage;
 
 import com.github.luben.zstd.Zstd;
+import nu.marginalia.slop.column.AbstractColumn;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -37,6 +38,7 @@ public class BlockCompressedStorageWriter implements StorageWriter {
     static final int MAGIC = 0x535A5342;
 
     private final int blockSize;
+    private final int compressionLevel;
 
     // Direct buffers required by Zstd JNI
     private final ByteBuffer buffer;       // blockSize, little-endian, accumulates data
@@ -49,8 +51,11 @@ public class BlockCompressedStorageWriter implements StorageWriter {
     private final Path tempPath;
     private final Path destPath;
 
-    public BlockCompressedStorageWriter(Path path, int blockSize) throws IOException {
+    public BlockCompressedStorageWriter(Path path, int blockSize, int compressionLevel) throws IOException {
+        CompressingStorageWriter.validateZstdCompressionLevel(compressionLevel);
+
         this.blockSize = blockSize;
+        this.compressionLevel = compressionLevel;
         this.tempPath = path.resolveSibling(path.getFileName() + ".tmp");
         this.destPath = path;
 
@@ -70,7 +75,7 @@ public class BlockCompressedStorageWriter implements StorageWriter {
         if (uncompressedSize == 0) return;
 
         compressedBB.clear();
-        long result = Zstd.compress(compressedBB, buffer, 3);
+        long result = Zstd.compress(compressedBB, buffer, compressionLevel);
         if (Zstd.isError(result)) {
             throw new IOException("Zstd compression error: " + Zstd.getErrorName(result));
         }

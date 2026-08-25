@@ -28,11 +28,11 @@ public class EnumColumn extends AbstractObjectColumn<String, EnumColumn.Reader, 
         this(name, charset, StorageType.PLAIN);
     }
 
-    public EnumColumn(String name, Charset charset, StorageType storageType) {
-        super(name, "enum+"+charset.displayName(), ByteOrder.nativeOrder(), ColumnFunction.DATA, storageType);
+    public EnumColumn(String name, Charset charset, StorageType storageType, ColumnOption... options) {
+        super(name, "enum+"+charset.displayName(), ByteOrder.nativeOrder(), ColumnFunction.DATA, storageType, options);
 
         dicionaryColumn = new StringColumn(name, charset, ColumnFunction.DICT, StorageType.PLAIN);
-        dataColumn = new VarintColumn(name, ColumnFunction.DATA, storageType);
+        dataColumn = new VarintColumn(name, ColumnFunction.DATA, storageType, options);
     }
 
 

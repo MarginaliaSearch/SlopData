@@ -110,7 +110,7 @@ class BlockCompressedNetworkStorageReaderTest {
     void sequentialReadInts() throws IOException {
         Path file = tempDir.resolve("ints.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE)) {
+        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE, 3)) {
             for (int i = 0; i < 200; i++) {
                 writer.putInt(i);
             }
@@ -131,7 +131,7 @@ class BlockCompressedNetworkStorageReaderTest {
     void sequentialReadBytes() throws IOException {
         Path file = tempDir.resolve("bytes.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE)) {
+        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE, 3)) {
             for (int i = 0; i < 200; i++) {
                 writer.putByte((byte) i);
             }
@@ -152,7 +152,7 @@ class BlockCompressedNetworkStorageReaderTest {
         // Use block size = 64 so 10 000 ints span many blocks
         Path file = tempDir.resolve("seek.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, 64)) {
+        try (var writer = new BlockCompressedStorageWriter(file, 64, 3)) {
             for (int i = 0; i < 10_000; i++) {
                 writer.putInt(i);
             }
@@ -182,7 +182,7 @@ class BlockCompressedNetworkStorageReaderTest {
     void skipAcrossBlockBoundary() throws IOException {
         Path file = tempDir.resolve("skip.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, 64)) {
+        try (var writer = new BlockCompressedStorageWriter(file, 64, 3)) {
             for (int i = 0; i < 200; i++) {
                 writer.putInt(i);
             }
@@ -203,7 +203,7 @@ class BlockCompressedNetworkStorageReaderTest {
     void emptyFile() throws IOException {
         Path file = tempDir.resolve("empty.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE)) {
+        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE, 3)) {
             // write nothing
         }
 
@@ -219,7 +219,7 @@ class BlockCompressedNetworkStorageReaderTest {
     void serverWithoutRangeSupportThrows() throws IOException {
         // Write a valid file so the server has something to serve
         Path file = tempDir.resolve("norange.zstdb");
-        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE)) {
+        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE, 3)) {
             writer.putInt(42);
         }
 

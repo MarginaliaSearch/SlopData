@@ -26,8 +26,8 @@ public class ByteArrayColumn extends AbstractObjectColumn<byte[], ByteArrayColum
         this(name, ColumnFunction.DATA, storageType);
     }
 
-    public ByteArrayColumn(String name, ColumnFunction function, StorageType storageType) {
-        super(name, "s8[]", ByteOrder.nativeOrder(), function, storageType);
+    public ByteArrayColumn(String name, ColumnFunction function, StorageType storageType, ColumnOption... options) {
+        super(name, "s8[]", ByteOrder.nativeOrder(), function, storageType, options);
 
         lengthColumn = new VarintColumn(name, function.lengthsTable(), StorageType.PLAIN);
     }

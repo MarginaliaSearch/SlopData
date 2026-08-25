@@ -65,7 +65,7 @@ class BlockCompressedStorageWriterAndReaderTest {
 
     StorageWriter writer(Path path) {
         try {
-            return new BlockCompressedStorageWriter(path, BLOCK_SIZE);
+            return new BlockCompressedStorageWriter(path, BLOCK_SIZE, 3);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -365,7 +365,7 @@ class BlockCompressedStorageWriterAndReaderTest {
         int largeBlockSize = 64;
         Path p = tempFile();
 
-        try (var writer = new BlockCompressedStorageWriter(p, largeBlockSize)) {
+        try (var writer = new BlockCompressedStorageWriter(p, largeBlockSize, 3)) {
             for (int i = 0; i < 10_000; i++) {
                 writer.putInt(i);
             }
@@ -391,7 +391,7 @@ class BlockCompressedStorageWriterAndReaderTest {
         int largeBlockSize = 64;
         Path p = tempFile();
 
-        try (var writer = new BlockCompressedStorageWriter(p, largeBlockSize)) {
+        try (var writer = new BlockCompressedStorageWriter(p, largeBlockSize, 3)) {
             for (int i = 0; i < 200; i++) {
                 writer.putInt(i);
             }

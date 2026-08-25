@@ -89,7 +89,7 @@ class BlockCompressedStreamingNetworkStorageReaderTest {
     void sequentialReadInts() throws IOException {
         Path file = tempDir.resolve("ints.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE)) {
+        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE, 3)) {
             for (int i = 0; i < 200; i++) {
                 writer.putInt(i);
             }
@@ -110,7 +110,7 @@ class BlockCompressedStreamingNetworkStorageReaderTest {
     void sequentialReadBytes() throws IOException {
         Path file = tempDir.resolve("bytes.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE)) {
+        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE, 3)) {
             for (int i = 0; i < 200; i++) {
                 writer.putByte((byte) i);
             }
@@ -130,7 +130,7 @@ class BlockCompressedStreamingNetworkStorageReaderTest {
     void skipAcrossBlockBoundary() throws IOException {
         Path file = tempDir.resolve("skip.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, 64)) {
+        try (var writer = new BlockCompressedStorageWriter(file, 64, 3)) {
             for (int i = 0; i < 200; i++) {
                 writer.putInt(i);
             }
@@ -151,7 +151,7 @@ class BlockCompressedStreamingNetworkStorageReaderTest {
     void skipWithinBlock() throws IOException {
         Path file = tempDir.resolve("skipintra.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, 64)) {
+        try (var writer = new BlockCompressedStorageWriter(file, 64, 3)) {
             for (int i = 0; i < 50; i++) {
                 writer.putInt(i);
             }
@@ -171,7 +171,7 @@ class BlockCompressedStreamingNetworkStorageReaderTest {
     void emptyFile() throws IOException {
         Path file = tempDir.resolve("empty.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE)) {
+        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE, 3)) {
             // write nothing
         }
 
@@ -187,7 +187,7 @@ class BlockCompressedStreamingNetworkStorageReaderTest {
     void seekThrows() throws IOException {
         Path file = tempDir.resolve("seek.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE)) {
+        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE, 3)) {
             writer.putInt(42);
         }
 
@@ -203,7 +203,7 @@ class BlockCompressedStreamingNetworkStorageReaderTest {
     void positionTracking() throws IOException {
         Path file = tempDir.resolve("pos.zstdb");
 
-        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE)) {
+        try (var writer = new BlockCompressedStorageWriter(file, BLOCK_SIZE, 3)) {
             for (int i = 0; i < 50; i++) {
                 writer.putInt(i);
             }

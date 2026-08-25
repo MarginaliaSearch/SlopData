@@ -1,6 +1,7 @@
 package nu.marginalia.slop.column.dynamic;
 
 import nu.marginalia.slop.column.AbstractColumn;
+import nu.marginalia.slop.column.ColumnOption;
 import nu.marginalia.slop.column.ColumnReader;
 import nu.marginalia.slop.column.ColumnWriter;
 import nu.marginalia.slop.desc.ColumnFunction;
@@ -24,8 +25,8 @@ public class VarintColumn extends AbstractColumn<VarintColumn.Reader, VarintColu
         this(name, ColumnFunction.DATA, storageType);
     }
 
-    public VarintColumn(String name, ColumnFunction function, StorageType storageType) {
-        super(name, "varint", ByteOrder.nativeOrder(), function, storageType);
+    public VarintColumn(String name, ColumnFunction function, StorageType storageType, ColumnOption... options) {
+        super(name, "varint", ByteOrder.nativeOrder(), function, storageType, options);
     }
 
     @Override

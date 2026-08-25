@@ -28,8 +28,8 @@ public class CStringColumn extends AbstractObjectColumn<String, CStringColumn.Re
         this(name, charset, ColumnFunction.DATA, storageType);
     }
 
-    public CStringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType) {
-        super(name, "s8+cstr+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType);
+    public CStringColumn(String name, Charset charset, ColumnFunction function, StorageType storageType, ColumnOption... options) {
+        super(name, "s8+cstr+"+charset.displayName(), ByteOrder.nativeOrder(), function, storageType, options);
     }
 
     @Override
